@@ -11,12 +11,15 @@ header { text-align:center; padding:30px 20px; }
 header h1 { font-size:3rem; color:#b388ff; text-shadow:0 0 15px #7f5cff; }
 header p { color:#c7bfff; margin:5px 0; }
 .warning { background: #ff0055; color: #fff; padding:10px; font-weight:bold; text-align:center; }
-.chat-box { max-width:700px; margin:20px auto 60px; background: rgba(15,5,35,0.95); border-radius:20px; padding:20px; box-shadow:0 0 40px #5b2cff; display:flex; flex-direction:column; text-align:center; }
-.input-area { display:flex; gap:10px; margin-top:15px; justify-content:center; }
-input { flex:1; padding:12px; border-radius:10px; border:none; background:#120826; color:#fff; outline:none; font-size:1rem; text-align:center; }
+.chat-box { max-width:700px; margin:20px auto 60px; background: rgba(15,5,35,0.95); border-radius:20px; padding:20px; box-shadow:0 0 40px #5b2cff; display:flex; flex-direction:column; }
+.messages { flex:1; overflow-y:auto; max-height:400px; padding-right:10px; }
+.message { margin:10px 0; padding:12px 18px; border-radius:15px; max-width:100%; word-wrap:break-word; overflow-wrap:break-word; line-height:1.4; }
+.bot { background:#2a145f; box-shadow:0 0 15px #7f5cff; }
+.user { background:#00d4ff; color:#000; margin-left:auto; box-shadow:0 0 15px #00d4ff; }
+.input-area { display:flex; gap:10px; margin-top:15px; }
+input { flex:1; padding:12px; border-radius:10px; border:none; background:#120826; color:#fff; outline:none; font-size:1rem; }
 button { padding:12px 20px; border-radius:10px; border:none; cursor:pointer; background:linear-gradient(90deg, #7f00ff, #00d4ff); font-weight:bold; }
 footer { text-align:center; padding:10px; color:#c7bfff; }
-a { color:#00d4ff; text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -29,10 +32,10 @@ a { color:#00d4ff; text-decoration:underline; }
 </header>
 
 <div class="chat-box">
-  <p>Welcome! Please select your country (Currently only India works):</p>
+  <div class="messages" id="chatMessages"></div>
   <div class="input-area">
-    <input id="countryInput" placeholder="Type country name..." />
-    <button onclick="handleCountry()">Go</button>
+    <input id="chatInput" placeholder="Type your message..." />
+    <button onclick="handleInput()">Send</button>
   </div>
 </div>
 
@@ -41,26 +44,59 @@ a { color:#00d4ff; text-decoration:underline; }
 </footer>
 
 <script>
-function handleCountry(){
-  const country = document.getElementById('countryInput').value.trim().toLowerCase();
-  if(country !== "india"){ alert("Currently only India is supported."); return; }
-  
-  document.querySelector('.chat-box').innerHTML = `
-    <p>Great! You chose India. Now select a state:</p>
-    <div class="input-area">
-      <input id="stateInput" placeholder="Type state name..." />
-      <button onclick="handleState()">Go</button>
-    </div>
-  `;
+const chat = document.getElementById('chatMessages');
+const input = document.getElementById('chatInput');
+
+let step = 0, mode = "country", country = "", state = "";
+
+// Typing animation
+function addBotMessageAnimated(text){
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    chat.appendChild(div);
+    let index=0;
+    const interval = setInterval(()=>{
+        div.innerHTML = text.substring(0,index);
+        index++;
+        chat.scrollTo({top:chat.scrollHeight, behavior:'smooth'});
+        if(index>text.length) clearInterval(interval);
+    },25);
 }
 
-function handleState(){
-  const state = document.getElementById('stateInput').value.trim().toLowerCase();
-  if(state === "maharashtra"){
-    window.location.href = "maharashtra.html";
-  } else {
-    alert("Currently only Maharashtra page is available. Other states coming soon!");
-  }
+function addMessage(text,type){
+    const div=document.createElement('div'); div.className='message '+type; div.innerHTML=text;
+    chat.appendChild(div); chat.scrollTo({top:chat.scrollHeight, behavior:'smooth'});
+}
+
+// Enter key works
+input.addEventListener('keypress', function(e){ if(e.key==='Enter'){ handleInput(); } });
+
+addBotMessageAnimated("👋 Welcome to PlanDaVoyage!");
+addBotMessageAnimated("Please type your country (Currently only India is supported):");
+
+// Handle input
+function handleInput(){
+    const value = input.value.trim();
+    if(!value) return;
+    addMessage(value,"user"); input.value="";
+    
+    if(mode==="country"){
+        if(value.toLowerCase() !== "india"){ addBotMessageAnimated("Currently only India is supported."); return; }
+        country = value;
+        mode="state";
+        addBotMessageAnimated("Great! Now type your state (e.g., Maharashtra):");
+        return;
+    }
+    
+    if(mode==="state"){
+        if(value.toLowerCase()==="maharashtra"){ 
+            addBotMessageAnimated("Redirecting to Maharashtra attractions..."); 
+            setTimeout(()=>{ window.location.href="maharashtra.html"; }, 1000);
+        } else {
+            addBotMessageAnimated("Currently only Maharashtra is supported. Other states coming soon!");
+        }
+        return;
+    }
 }
 </script>
 
