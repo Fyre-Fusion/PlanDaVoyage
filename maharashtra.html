@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PlanDaVoyage — Smart Trip Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+body { margin:0; background: linear-gradient(135deg, #0a0f2c, #1a0033); color:#e6e6ff; }
+header { text-align:center; padding:30px 20px; }
+header h1 { font-size:3rem; color:#b388ff; text-shadow:0 0 15px #7f5cff; }
+header p { color:#c7bfff; }
+.chat-box { max-width:700px; margin:20px auto 60px; background: rgba(15,5,35,0.95); border-radius:20px; padding:20px; box-shadow:0 0 40px #5b2cff; display:flex; flex-direction:column; }
+.messages { flex: 1; overflow-y:auto; overflow-x:hidden; max-height:400px; padding-right:10px; }
+.message { margin:10px 0; padding:12px 18px; border-radius:15px; max-width:100%; word-wrap:break-word; overflow-wrap:break-word; line-height:1.4; }
+.bot { background:#2a145f; box-shadow:0 0 15px #7f5cff; }
+.user { background:#00d4ff; color:#000; margin-left:auto; box-shadow:0 0 15px #00d4ff; }
+.input-area { display:flex; gap:10px; margin-top:15px; }
+input { flex:1; padding:12px; border-radius:10px; border:none; background:#120826; color:#fff; outline:none; font-size:1rem; }
+button { padding:12px 20px; border-radius:10px; border:none; cursor:pointer; background:linear-gradient(90deg, #7f00ff, #00d4ff); font-weight:bold; }
+.itinerary-item { cursor:pointer; background:rgba(30,10,60,0.9); padding:10px; margin:6px 0; border-radius:12px; box-shadow:0 0 10px #7f00ff; transition:0.2s; word-wrap:break-word; overflow-wrap:break-word; }
+.itinerary-item:hover { transform:scale(1.02); box-shadow:0 0 15px #00d4ff; }
+.itinerary-item.selected { background:#00d4ff; color:#000; box-shadow:0 0 20px #00d4ff; }
+.copy-btn { margin-top:10px; padding:10px; border-radius:10px; background:linear-gradient(90deg,#00d4ff,#7f00ff); border:none; cursor:pointer; font-weight:bold; color:#000; }
+a { color:#00d4ff; word-break:break-word; text-decoration:underline; display:inline-block; }
+footer { text-align:center; padding:10px; color:#c7bfff; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>PlanDaVoyage</h1>
+<p>Smart Trip & Itinerary Chat — Maharashtra</p>
+</header>
+
+<div class="chat-box">
+  <div class="messages" id="chatMessages"></div>
+  <div class="input-area">
+    <input id="chatInput" placeholder="Type your message..." />
+    <button onclick="handleInput()">Send</button>
+  </div>
+</div>
+
+<footer>
+© 2025 PlanDaVoyage — Smart Travel
+</footer>
+
+<script>
+const chat = document.getElementById('chatMessages');
+const input = document.getElementById('chatInput');
+
+let step=0, mode="finder", tripType="", people=1, state="maharashtra", city="", itinerary=[];
+
+// Saved places
+const savedPlaces = [
+  {
+    name: "Amboli Falls Picnic Spot",
+    maps: "https://www.google.com/maps/place/Amboli+Water+Falls/@15.9490391,73.9962674,17z",
+    types: ["bachelor","family"],
+    minPeople: 2,
+    maxPeople: 7,
+    state: "maharashtra",
+    city: "amboli",
+    description: "Amboli Waterfall is a scenic monsoon cascade in Maharashtra’s Western Ghats, flowing at its best from June to October. Located just 3 km from Amboli village, it drops about 30 meters amidst lush green forests. Entry is affordable or free, usually open during daylight hours. Perfect for nature lovers, photography, and a peaceful retreat."
+  },
+  {
+    name: "Devkund Waterfall",
+    maps: "https://www.google.com/maps/place/Devkund+Waterfall/@19.343239,73.296846,17z",
+    types: ["bachelor","family"],
+    minPeople: 2,
+    maxPeople: 7,
+    state: "maharashtra",
+    city: "karjat",
+    description: "Scenic waterfall famous for trekking.",
+    itineraryInfo: "Trek of 5 km (one way), rocky and mountain climbing terrain, parking charge: ₹600"
+  }
+];
+
+// Typing animation
+function addBotMessageAnimated(text, link=null) {
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    chat.appendChild(div);
+    if(link){
+        let index=0;
+        const interval = setInterval(()=>{
+            div.innerHTML = text.substring(0,index)+` <a href='${link}' target='_blank'>[Map]</a>`;
+            index++;
+            chat.scrollTo({top:chat.scrollHeight, behavior:'smooth'});
+            if(index>text.length) clearInterval(interval);
+        },25);
+    } else {
+        let index=0;
+        const interval = setInterval(()=>{
+            div.innerHTML = text.substring(0,index);
+            index++;
+            chat.scrollTo({top:chat.scrollHeight, behavior:'smooth'});
+            if(index>text.length) clearInterval(interval);
+        },25);
+    }
+}
+
+// Instant message for user
+function addMessage(text,type){
+  const div=document.createElement('div'); div.className='message '+type; div.innerHTML=text;
+  chat.appendChild(div);
+  chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+}
+
+// Enter key
+input.addEventListener('keypress', function(e){ if(e.key==='Enter'){ handleInput(); } });
+
+addBotMessageAnimated("👋 Welcome to PlanDaVoyage!");
+addBotMessageAnimated("Type '/finder' to find places or '/itinerary' to generate your itinerary.");
+
+// ===== HANDLE INPUT =====
+function handleInput(){
+  let value=input.value.trim(); if(!value) return;
+  addMessage(value,"user");
+
+  // Special thanks response
+  if(/^\s*(thanks|thank you)\s*$/i.test(value)){
+    addBotMessageAnimated("You're most welcome! 😊");
+    input.value="";
+    return;
+  }
+
+  input.value="";
+  if(value.startsWith("/finder")){ resetFinder(); return; }
+  if(value.startsWith("/itinerary")){ resetItinerary(); return; }
+  if(mode==="finder"){ handleFinder(value); }
+  else if(mode==="itinerary"){ handleItinerary(value); }
+}
+
+// ===== FINDER =====
+function resetFinder() {
+    mode = "finder";
+    step = 0;
+    tripType = "";
+    people = 1;
+    city = "";
+    addBotMessageAnimated("Bachelor or Family trip?");
+}
+
+function handleFinder(value) {
+    value = value.toLowerCase();
+
+    // STEP 0: Trip type
+    if(step === 0){ 
+        if(value !== 'family' && value !== 'bachelor'){ 
+            addBotMessageAnimated("Please type bachelor or family."); 
+            return; 
+        }
+        tripType = value; 
+        addBotMessageAnimated("Which city? (type 'skip' to skip)");
+        step++; 
+        return; 
+    }
+
+    // STEP 1: City (optional)
+    if(step === 1){
+        if(value !== "skip") city = value;
+        addBotMessageAnimated("How many people? (2&#8209;7)"); // fixed hyphen
+        step++;
+        return;
+    }
+
+    // STEP 2: Number of people
+    if(step === 2){
+        let num = parseInt(value);
+        if(isNaN(num) || num < 2 || num > 7){
+            addBotMessageAnimated("Enter a valid number between 2‑7."); 
+            return;
+        }
+        people = num; 
+        generateFinder(); 
+        step++; 
+        return;
+    }
+}
+
+function generateFinder() {
+    let matches = savedPlaces.filter(p => 
+        p.types.includes(tripType) &&
+        people >= p.minPeople &&
+        people <= p.maxPeople &&
+        (city ? p.city?.toLowerCase() === city.toLowerCase() : true)
+    );
+
+    if(matches.length === 0){
+        addBotMessageAnimated("No matches found.");
+        return;
+    }
+
+    addBotMessageAnimated("✅ Best matches:");
+    matches.forEach(p => addBotMessageAnimated(p.name, p.maps));
+}
+
+// ===== ITINERARY =====
+function resetItinerary(){ mode="itinerary"; step=0; itinerary=[]; addBotMessageAnimated("Enter place name to add to itinerary:"); }
+
+function handleItinerary(value){
+  value=value.toLowerCase();
+  let matches = savedPlaces.filter(p=>p.name.toLowerCase().includes(value) || value==='test');
+  if(matches.length===0){ addBotMessageAnimated("No matching locations."); return; }
+  addBotMessageAnimated("Click the location to add it to your itinerary:");
+  matches.forEach(p=>{
+      const div=document.createElement('div');
+      div.className="itinerary-item"; 
+      div.innerHTML=`${p.name} <a href='${p.maps}' target='_blank'>[Map]</a>`;
+      div.onclick=()=>selectItinerary(p,div);
+      chat.appendChild(div);
+      chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+  });
+}
+
+function selectItinerary(place,element){
+  if(element.classList.contains('selected')) return;
+  if(itinerary.length>=2){ addBotMessageAnimated("Maximum 2 locations reached"); return; }
+  element.classList.add('selected'); itinerary.push(place); addBotMessageAnimated(`✅ Selected: ${place.name}`);
+  generateItinerary();
+}
+
+function generateItinerary(){
+  let output="";
+  itinerary.forEach((place,i)=>{
+    output += `<b>${place.name}</b><br>`;
+    output += `Description: ${place.description}<br>`;
+    output += `Day ${i+1}: Visit and explore.<br>`;
+    if(place.itineraryInfo) output += `Info: ${place.itineraryInfo}<br>`;
+    output += `Map: <a href='${place.maps}' target='_blank'>[Map]</a><br><br>`;
+  });
+  if(itinerary.length>0 && !document.getElementById("copyBtn")){
+    const btn=document.createElement('button'); btn.id="copyBtn"; btn.className="copy-btn"; btn.innerText="Copy Itinerary";
+    btn.onclick=()=>copyItinerary(output); chat.appendChild(btn);
+  }
+  addBotMessageAnimated(output);
+}
+
+function copyItinerary(text){ navigator.clipboard.writeText(text.replace(/<br>/g,"\n").replace(/<[^>]+>/g,"")); alert("Itinerary copied!"); }
+
+</script>
+</body>
+</html>
+
