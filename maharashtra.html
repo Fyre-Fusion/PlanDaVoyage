@@ -2,59 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PlanDaVoyage — Maharashtra Attractions</title>
+<title>PlanDaVoyage — Maharashtra</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-body { margin:0; background: linear-gradient(135deg, #0a0f2c, #1a0033); color:#e6e6ff; }
-header { text-align:center; padding:30px 20px; }
-header h1 { font-size:3rem; color:#b388ff; text-shadow:0 0 15px #7f5cff; }
-header p { color:#c7bfff; }
-.chat-box { max-width:700px; margin:20px auto 60px; background: rgba(15,5,35,0.95); border-radius:20px; padding:20px; box-shadow:0 0 40px #5b2cff; display:flex; flex-direction:column; }
-.messages { flex: 1; overflow-y:auto; overflow-x:hidden; max-height:400px; padding-right:10px; }
-.message { margin:10px 0; padding:12px 18px; border-radius:15px; max-width:100%; word-wrap:break-word; overflow-wrap:break-word; line-height:1.4; }
-.bot { background:#2a145f; box-shadow:0 0 15px #7f5cff; }
-.user { background:#00d4ff; color:#000; margin-left:auto; box-shadow:0 0 15px #00d4ff; }
-.input-area { display:flex; gap:10px; margin-top:15px; }
-input { flex:1; padding:12px; border-radius:10px; border:none; background:#120826; color:#fff; outline:none; font-size:1rem; }
-button { padding:12px 20px; border-radius:10px; border:none; cursor:pointer; background:linear-gradient(90deg, #7f00ff, #00d4ff); font-weight:bold; }
-.itinerary-item { cursor:pointer; background:rgba(30,10,60,0.9); padding:10px; margin:6px 0; border-radius:12px; box-shadow:0 0 10px #7f00ff; transition:0.2s; word-wrap:break-word; overflow-wrap:break-word; }
-.itinerary-item:hover { transform:scale(1.02); box-shadow:0 0 15px #00d4ff; }
-.itinerary-item.selected { background:#00d4ff; color:#000; box-shadow:0 0 20px #00d4ff; }
-.copy-btn { margin-top:10px; padding:10px; border-radius:10px; background:linear-gradient(90deg,#00d4ff,#7f00ff); border:none; cursor:pointer; font-weight:bold; color:#000; }
-a { color:#00d4ff; word-break:break-word; text-decoration:underline; display:inline-block; }
-footer { text-align:center; padding:10px; color:#c7bfff; }
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body{margin:0;background:linear-gradient(135deg,#0a0f2c,#1a0033);color:#e6e6ff}
+.warning{background:#ff004c;color:#fff;text-align:center;padding:10px;font-weight:bold;animation:pulse 2s infinite}
+@keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
+header{text-align:center;padding:30px}
+header h1{font-size:3rem;color:#b388ff;text-shadow:0 0 15px #7f5cff}
+.chat-box{max-width:700px;margin:20px auto;background:rgba(15,5,35,.95);border-radius:20px;padding:20px;box-shadow:0 0 40px #5b2cff;display:flex;flex-direction:column}
+.messages{flex:1;overflow-y:auto;max-height:400px}
+.message{margin:10px 0;padding:12px 18px;border-radius:15px}
+.bot{background:#2a145f}
+.user{background:#00d4ff;color:#000;margin-left:auto}
+.input-area{display:flex;gap:10px;margin-top:15px}
+input{flex:1;padding:12px;border-radius:10px;border:none;background:#120826;color:#fff}
+button{padding:12px 20px;border-radius:10px;border:none;background:linear-gradient(90deg,#7f00ff,#00d4ff)}
+.itinerary-item{background:#20104d;padding:10px;margin:6px 0;border-radius:12px;cursor:pointer}
+footer{text-align:center;padding:10px;color:#c7bfff}
 </style>
 </head>
 <body>
 
+<div class="warning">⚠️ MAHARASHTRA MODULE — UNDER TESTING ⚠️</div>
+
 <header>
 <h1>PlanDaVoyage</h1>
-<p>Smart Maharashtra Attractions Chat</p>
+<p>Maharashtra Smart Travel</p>
 </header>
 
 <div class="chat-box">
-  <div class="messages" id="chatMessages"></div>
+  <div class="messages" id="chat"></div>
   <div class="input-area">
-    <input id="chatInput" placeholder="Type your message..." />
-    <button onclick="handleInput()">Send</button>
+    <input id="input" placeholder="Type here..." />
+    <button onclick="send()">Go</button>
   </div>
 </div>
 
-<footer>
-© 2025 PlanDaVoyage — Smart Travel
-</footer>
+<footer>© 2025 PlanDaVoyage</footer>
 
 <script>
-// Similar JS as previously with all waterfalls, dams, /finder & /itinerary integration
-// Same code as the full maharashtra.html from previous answer
-// Keeps all the functionality:
-// - /finder → trip type, attraction type, city skip, people 2 to 7
-// - /itinerary → select 2 locations
-// - Thanks/Thank you response
-// - Waterfalls + Dams
-// Paste the full JS code from previous maharashtra.html here
-</script>
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
 
+let mode="finder";
+let step=0;
+
+const places=[
+ {name:"Amboli Waterfall",type:"waterfall",map:"https://www.googlemaps.com/place/Amboli+Waterfall"},
+ {name:"Devkund Waterfall",type:"waterfall",map:"https://www.googlemaps.com/place/Devkund+Waterfall"},
+ {name:"Lingmala Waterfall",type:"waterfall",map:"https://www.googlemaps.com/place/Lingmala+Waterfall"},
+ {name:"Pawna Dam",type:"dam",map:"https://www.googlemaps.com/place/Pawna+Dam"},
+ {name:"Koyna Dam",type:"dam",map:"https://www.googlemaps.com/place/Koyna+Dam"}
+];
+
+function bot(t,l){
+ let d=document.createElement("div");
+ d.className="message bot";
+ d.innerHTML=t+(l?` <a href="${l}" target="_blank">[Map]</a>`:"");
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
+}
+function user(t){
+ let d=document.createElement("div");
+ d.className="message user";
+ d.textContent=t;
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
+}
+
+input.addEventListener("keydown",e=>{if(e.key==="Enter")send()});
+
+bot("Type /finder to find places");
+bot("Type /itinerary to build itinerary");
+
+function resetFinder(){
+ mode="finder";
+ step=0;
+ bot("Bachelor or family trip?");
+}
+
+function send(){
+ const v=input.value.trim();
+ if(!v) return;
+ user(v);
+ input.value="";
+
+ if(v.toLowerCase().includes("thank")){
+   bot("You're most welcome!");
+   return;
+ }
+
+ if(v==="/finder"){ resetFinder(); return; }
+ if(v==="/itinerary"){ mode="itinerary"; bot("Type place name"); return; }
+
+ if(mode==="finder"){
+   if(step===0){ step=1; bot("Waterfalls or dams?"); return; }
+   if(step===1){ step=2; bot("How many people? (2 to 7)"); return; }
+   if(step===2){
+     bot("Matches:");
+     places.filter(p=>v.toLowerCase().includes(p.type))
+       .forEach(p=>bot(p.name,p.map));
+     return;
+   }
+ }
+
+ if(mode==="itinerary"){
+   places.filter(p=>p.name.toLowerCase().includes(v.toLowerCase()))
+     .forEach(p=>{
+       let d=document.createElement("div");
+       d.className="itinerary-item";
+       d.textContent=p.name;
+       d.onclick=()=>bot("Added "+p.name,p.map);
+       chat.appendChild(d);
+     });
+ }
+}
+
+/* HARD reload protection */
+window.addEventListener("pageshow",e=>{
+ if(e.persisted || performance.getEntriesByType("navigation")[0].type==="reload"){
+   location.replace("index.html");
+ }
+});
+</script>
 </body>
 </html>
