@@ -13,6 +13,7 @@ header p { color:#c7bfff; margin:5px 0; }
 .warning { background: #ff0055; color: #fff; padding:10px; font-weight:bold; text-align:center; }
 .chat-box { max-width:700px; margin:20px auto 60px; background: rgba(15,5,35,0.95); border-radius:20px; padding:20px; box-shadow:0 0 40px #5b2cff; display:flex; flex-direction:column; }
 .messages { flex:1; overflow-y:auto; max-height:400px; padding-right:10px; }
+.messages::before { content:"⚠️ UNDER TESTING & DEVELOPMENT ⚠️"; display:block; color:#ff5555; font-weight:bold; text-align:center; margin-bottom:10px; }
 .message { margin:10px 0; padding:12px 18px; border-radius:15px; max-width:100%; word-wrap:break-word; overflow-wrap:break-word; line-height:1.4; }
 .bot { background:#2a145f; box-shadow:0 0 15px #7f5cff; }
 .user { background:#00d4ff; color:#000; margin-left:auto; box-shadow:0 0 15px #00d4ff; }
@@ -49,7 +50,6 @@ const input = document.getElementById('chatInput');
 
 let step = 0, mode = "country", country = "", state = "";
 
-// Typing animation
 function addBotMessageAnimated(text){
     const div = document.createElement('div');
     div.className = 'message bot';
@@ -68,17 +68,18 @@ function addMessage(text,type){
     chat.appendChild(div); chat.scrollTo({top:chat.scrollHeight, behavior:'smooth'});
 }
 
-// Enter key works
 input.addEventListener('keypress', function(e){ if(e.key==='Enter'){ handleInput(); } });
 
+addBotMessageAnimated("⚠️ Note: This system is under testing and development ⚠️");
 addBotMessageAnimated("👋 Welcome to PlanDaVoyage!");
 addBotMessageAnimated("Please type your country (Currently only India is supported):");
 
-// Handle input
 function handleInput(){
     const value = input.value.trim();
     if(!value) return;
     addMessage(value,"user"); input.value="";
+    
+    if(value.toLowerCase().includes("thank")){ addBotMessageAnimated("You're most welcome!"); return; }
     
     if(mode==="country"){
         if(value.toLowerCase() !== "india"){ addBotMessageAnimated("Currently only India is supported."); return; }
@@ -99,6 +100,5 @@ function handleInput(){
     }
 }
 </script>
-
 </body>
 </html>
