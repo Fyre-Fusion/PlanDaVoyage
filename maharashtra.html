@@ -135,7 +135,7 @@ let tripType="";
 let people=0;
 let itinerary=[];
 
-/* PLACES — unchanged concept */
+/* PLACES */
 const places=[
   {name:"Amboli Waterfall",map:"https://www.googlemaps.com/place/Amboli+Waterfall"},
   {name:"Devkund Waterfall",map:"https://www.googlemaps.com/place/Devkund+Waterfall"},
@@ -243,7 +243,7 @@ function generateFinderResults(){
   places.forEach(p=>addBot(p.name,p.map));
 }
 
-/* ===== ITINERARY (UNCHANGED STYLE) ===== */
+/* ===== ITINERARY (GOOGLE MAP LINKS FIXED) ===== */
 function resetItinerary(){
   mode="itinerary";
   itinerary=[];
@@ -251,24 +251,26 @@ function resetItinerary(){
 }
 
 function handleItinerary(value){
-  const matches=places.filter(p=>p.name.toLowerCase().includes(value.toLowerCase()));
-  if(!matches.length){
+  const matches = places.filter(p => p.name.toLowerCase().includes(value.toLowerCase()));
+  if(matches.length === 0){
     addBot("No matching locations");
     return;
   }
 
-  matches.forEach(p=>{
-    const div=document.createElement("div");
-    div.className="itinerary-item";
-    div.textContent=p.name;
-    div.onclick=()=>{
+  addBot("Click a location below to add it to your itinerary:");
+
+  matches.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "itinerary-item";
+    div.innerHTML = `${p.name} <a href="${p.map}" target="_blank">[Map]</a>`;
+    div.onclick = () => {
       if(itinerary.includes(p)) return;
       itinerary.push(p);
       div.classList.add("selected");
-      addBot("Added "+p.name,p.map);
+      addBot(`✅ Added ${p.name}`, p.map);
     };
     chat.appendChild(div);
-    chat.scrollTop=chat.scrollHeight;
+    chat.scrollTop = chat.scrollHeight;
   });
 }
 
