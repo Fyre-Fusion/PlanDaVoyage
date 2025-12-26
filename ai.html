@@ -2,310 +2,111 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PlanDaVoyage — Maharashtra</title>
+<title>DaHelpeCenter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
-body{margin:0;background:linear-gradient(135deg,#0a0f2c,#1a0033);color:#e6e6ff}
+body{margin:0;background:linear-gradient(135deg,#ffffff,#e9e4ff);color:#111}
 
-@keyframes pulse{
-  0%{opacity:1}
-  50%{opacity:.6}
-  100%{opacity:1}
-}
 .warning{
-  background:#ff004c;
+  background:#c80000;
   color:#fff;
   text-align:center;
   padding:10px;
   font-weight:bold;
-  animation:pulse 2s infinite;
+  animation:pulse 2s infinite
 }
+@keyframes pulse{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
 
-header{text-align:center;padding:30px}
-header h1{font-size:3rem;color:#b388ff;text-shadow:0 0 15px #7f5cff}
-header p{color:#c7bfff}
+header{text-align:center;padding:20px}
+header h1{color:#5a2cff}
 
 .chat-box{
-  max-width:700px;
-  margin:20px auto 60px;
-  background:rgba(15,5,35,0.95);
-  border-radius:20px;
+  max-width:760px;
+  margin:20px auto 40px;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 0 25px rgba(90,44,255,.3);
   padding:20px;
-  box-shadow:0 0 40px #5b2cff;
   display:flex;
-  flex-direction:column;
+  flex-direction:column
 }
 
-.messages{
-  flex:1;
-  overflow-y:auto;
-  max-height:400px;
-  padding-right:10px;
-}
+.messages{flex:1;overflow-y:auto;max-height:420px}
 
-.message{
-  margin:10px 0;
-  padding:12px 18px;
-  border-radius:15px;
-  max-width:100%;
-  word-wrap:break-word;
-  line-height:1.4;
-}
+.message{margin:10px 0;padding:14px 18px;border-radius:14px;line-height:1.6}
+.bot{background:#f1edff;border-left:4px solid #5a2cff}
+.user{background:#d6f0ff;margin-left:auto}
 
-.bot{background:#2a145f;box-shadow:0 0 15px #7f5cff}
-.user{background:#00d4ff;color:#000;margin-left:auto;box-shadow:0 0 15px #00d4ff}
+.input-area{display:flex;gap:10px;margin-top:10px}
+input{flex:1;padding:12px;border-radius:10px;border:1px solid #ccc}
+button{padding:12px 18px;border-radius:10px;border:none;background:#5a2cff;color:#fff;font-weight:bold}
 
-.input-area{display:flex;gap:10px;margin-top:15px}
-input{
-  flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#120826;
-  color:#fff;
-  outline:none;
-  font-size:1rem;
-}
-button{
-  padding:12px 20px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
-  background:linear-gradient(90deg,#7f00ff,#00d4ff);
-  font-weight:bold;
-}
-
-.itinerary-item{
-  cursor:pointer;
-  background:rgba(30,10,60,0.9);
-  padding:10px;
-  margin:6px 0;
-  border-radius:12px;
-  box-shadow:0 0 10px #7f00ff;
-}
-.itinerary-item.selected{
-  background:#00d4ff;
-  color:#000;
-}
-
-.copy-btn{
-  margin-top:10px;
-  padding:10px;
-  border-radius:10px;
-  background:linear-gradient(90deg,#00d4ff,#7f00ff);
-  border:none;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-a{color:#00d4ff;text-decoration:underline}
-
-footer{text-align:center;padding:10px;color:#c7bfff}
+a{color:#005eff;text-decoration:underline}
 </style>
 </head>
 
 <body>
 
-<div class="warning">⚠️ MAHARASHTRA MODULE — UNDER TESTING ⚠️</div>
+<div class="warning">⚠️ AI-GENERATED ITINERARY — FOR SUPPORTING DOCUMENTATION ⚠️</div>
 
 <header>
-<h1>PlanDaVoyage</h1>
-<p>Smart Maharashtra Travel Chat</p>
+<h1>DaHelpeCenter</h1>
+<p>Professional itinerary generator</p>
 </header>
 
 <div class="chat-box">
-  <div class="messages" id="chatMessages"></div>
+  <div class="messages" id="chat"></div>
   <div class="input-area">
-    <input id="chatInput" placeholder="Type your message..." />
-    <button onclick="handleInput()">Send</button>
+    <input id="input" placeholder="Type /total" />
+    <button onclick="handle()">Send</button>
   </div>
 </div>
 
-<footer>© 2025 PlanDaVoyage</footer>
-
 <script>
-const chat = document.getElementById("chatMessages");
-const input = document.getElementById("chatInput");
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
 
-let mode="finder";
-let step=0;
-let tripType="";
-let people=0;
-let itinerary=[];
-let selectedCity = "";
+function bot(t){const d=document.createElement("div");d.className="message bot";d.innerHTML=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
+function userMsg(t){const d=document.createElement("div");d.className="message user";d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
 
-/* PLACES */
-const places = [
-  // Waterfalls
-  {name:"Amboli Waterfall", type:"waterfall", map:"https://www.googlemaps.com/place/Amboli+Waterfall",
-   description:"Amboli Waterfall is a scenic monsoon cascade in Maharashtra’s Western Ghats...", 
-   itineraryInfo:"Entry is free or affordable, trekking 3 km from Amboli village, open during daylight hours."},
-  {name:"Devkund Waterfall", type:"waterfall", map:"https://www.googlemaps.com/place/Devkund+Waterfall",
-   description:"Scenic waterfall famous for trekking.", itineraryInfo:"Trek of 5 km (one way), rocky terrain, parking charge ₹600."},
-  {name:"Lingmala Waterfall", type:"waterfall", map:"https://www.googlemaps.com/place/Lingmala+Waterfall",
-   description:"Beautiful waterfall in Mahabaleshwar."},
-  // Dams
-  {name:"Pawna Dam", type:"dam", map:"https://www.googlemaps.com/place/Pawna+Dam", description:"Popular dam and picnic spot near Lonavala."},
-  {name:"Koyna Dam", type:"dam", map:"https://www.googlemaps.com/place/Koyna+Dam", description:"Major hydroelectric dam in Maharashtra."},
-  // Hotels
-  {name:"Ginger Mumbai Airport", type:"hotel", city:"mumbai",
-   map:"https://www.makemytrip.com/hotels/hotel-details/?hotelId=202307182100313629&_uCurrency=INR&checkin=01012026&checkout=01022026&city=CTBOM&country=IN&lat=19.09731&lng=72.85384&locusId=CTBOM&locusType=city&rank=1&regionNearByExp=3&roomStayQualifier=2e0e&rsc=1e2e0e&searchText=Mumbai&mtkeys=undefined",
-   description:"Rating: 4.0 stars"}
-];
+input.addEventListener("keydown",e=>{if(e.key==="Enter")handle();});
 
-/* CHAT HELPERS */
-function addBot(text,link=null){
-  const div=document.createElement("div");
-  div.className="message bot";
-  div.innerHTML=link?`${text} <a href="${link}" target="_blank">[Map]</a>`:text;
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
-}
+bot("This assistant generates a formal, structured travel itinerary.");
+bot("Type /total to generate your itinerary.");
 
-function addUser(text){
-  const div=document.createElement("div");
-  div.className="message user";
-  div.textContent=text;
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
-}
-
-input.addEventListener("keydown",e=>{
-  if(e.key==="Enter") handleInput();
-});
-
-/* INITIAL MESSAGES */
-addBot("⚠️ This system is under testing");
-addBot("Type /finder to find places");
-addBot("Type /itinerary to build an itinerary");
-addBot("Type /total to see your full day-by-day itinerary");
-
-/* MAIN HANDLER */
-function handleInput(){
-  const value=input.value.trim();
-  if(!value) return;
-
-  addUser(value);
+function handle(){
+  const v=input.value.trim();
+  if(!v)return;
+  userMsg(v);
   input.value="";
-
-  if(value.toLowerCase().includes("thank")){
-    addBot("You're most welcome!");
-    return;
-  }
-
-  if(value==="/finder"){ resetFinder(); return; }
-  if(value==="/itinerary"){ resetItinerary(); return; }
-  if(value.toLowerCase()==="/total" || value.toLowerCase()==="total itinerary"){ 
-    if(itinerary.length===0) addBot("You haven't added any locations yet."); 
-    else generateTotalItinerary(); 
-    return;
-  }
-
-  if(step==="category"){ handleCategory(value); step=0; return; }
-  if(step==="city"){ handleCity(value); return; }
-
-  if(mode==="finder"){ handleFinder(value); return; }
-  if(mode==="itinerary"){ handleItinerary(value); return; }
+  if(v.toLowerCase().includes("thank")){bot("You are most welcome.");return;}
+  if(v==="/total"){generate();return;}
+  bot("Unrecognized command. Please type /total.");
 }
 
-/* ===== FINDER LOGIC ===== */
-function resetFinder(){
-  mode="finder"; step=0; tripType=""; people=0; selectedCity="";
-  addBot("Bachelor or family trip?");
-}
+function generate(){
+  const itin=JSON.parse(localStorage.getItem("itinerary"))||[];
+  if(itin.length===0){bot("No locations have been added.");return;}
 
-function handleFinder(value){
-  value=value.toLowerCase();
-  if(step===0){
-    if(value!=="bachelor" && value!=="family"){ addBot("Please type bachelor or family"); return; }
-    tripType=value; step=1; addBot("How many people? (2 to 7)"); return;
-  }
-  if(step===1){
-    const num=parseInt(value);
-    if(isNaN(num)||num<2||num>7){ addBot("Enter a valid number from 2 to 7"); return; }
-    people=num; step=2; addBot("Enter city (or type 'skip')"); return;
-  }
-  if(step===2){ step="city"; handleCity(value); }
-}
-
-function handleCity(value){
-  value=value.toLowerCase();
-  selectedCity=value==="skip"? "" : value;
-  if(selectedCity) addBot(`City set to: ${selectedCity}`);
-  askCategory();
-}
-
-function askCategory(){
-  let msg = "What would you like to explore? Type one: dams, waterfalls";
-  if(selectedCity==="mumbai") msg+=", hotels";
-  msg+=", other attractions";
-  addBot(msg);
-  step="category";
-}
-
-function handleCategory(value){
-  value=value.toLowerCase();
-  let results = places.filter(p=>{
-    if(value==="hotels") return p.type==="hotel" && p.city===selectedCity;
-    return p.type===value;
+  let out="<b>Official Travel Itinerary</b><br><br>";
+  itin.forEach((p,i)=>{
+    out+=`<b>Day ${i+1} – ${p.name}, Maharashtra</b><br>`;
+    out+=`The traveler is scheduled to visit ${p.name} for sightseeing purposes.<br>`;
+    out+=`Description: ${p.description}<br>`;
+    if(p.itineraryInfo) out+=`Additional information: ${p.itineraryInfo}<br>`;
+    if(p.type==="hotel"){
+      out+=`Accommodation booking reference: <a href="${p.map}" target="_blank">Booking on MakeMyTrip</a><br>`;
+    } else {
+      out+=`Location reference: <a href="${p.map}" target="_blank">Google Maps</a><br>`;
+    }
+    out+="The visit is planned during standard daytime hours.<br><br>";
   });
-  if(results.length===0){ addBot("No matches found for this category."); return; }
-  addBot(`✅ Best ${value} in ${selectedCity || "Maharashtra"}:`);
-  results.forEach(p=>addBot(p.name,p.map));
+  out+="<b>End of itinerary.</b>";
+  bot(out);
 }
-
-/* ===== ITINERARY LOGIC ===== */
-function resetItinerary(){
-  mode="itinerary";
-  itinerary=[];
-  const oldBtn=document.getElementById("copyBtn");
-  if(oldBtn) oldBtn.remove();
-  addBot("Type place name to add to itinerary:");
-}
-
-function handleItinerary(value){
-  const matches = places.filter(p => p.name.toLowerCase().includes(value.toLowerCase()));
-  if(matches.length===0){ addBot("No matching locations"); return; }
-
-  addBot("Click a location below to add it to your itinerary:");
-
-  matches.forEach(p=>{
-    const div=document.createElement("div");
-    div.className="itinerary-item";
-    div.innerHTML=`${p.name} <a href="${p.map}" target="_blank">[Map]</a>`;
-    div.onclick=()=>{
-      if(div.classList.contains("selected")) return;
-      div.classList.add("selected");
-      itinerary.push(p);
-      addBot(`✅ Added ${p.name}`);
-    };
-    chat.appendChild(div);
-    chat.scrollTop=chat.scrollHeight;
-  });
-}
-
-/* ===== TOTAL ITINERARY ===== */
-function generateTotalItinerary(){
-  let output="<b>🗓️ Your Full Itinerary:</b><br><br>";
-  itinerary.forEach((p,i)=>{
-    output+=`<b>Day ${i+1}: ${p.name}</b><br>`;
-    output+=`Description: ${p.description}<br>`;
-    if(p.itineraryInfo) output+=`Info: ${p.itineraryInfo}<br>`;
-    output+=`Map: <a href='${p.map}' target='_blank'>[Map]</a><br><br>`;
-  });
-  addBot(output);
-}
-
-/* FORCE RELOAD → INDEX */
-window.addEventListener("pageshow",e=>{
-  if(e.persisted || performance.getEntriesByType("navigation")[0].type==="reload"){
-    location.replace("index.html");
-  }
-});
 </script>
 
 </body>
 </html>
-
