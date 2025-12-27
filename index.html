@@ -99,11 +99,12 @@ header h1{color:#5a2cff;font-size:2.8rem}
 /* RESET SESSION ITINERARY */
 sessionStorage.removeItem("itinerary");
 
-/* POINTS */
-let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0};
+/* POINTS + LEVEL (ADDED) */
+let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0,level:1};
 user.points += 5;
 localStorage.setItem("pdv_user",JSON.stringify(user));
-document.getElementById("stats").innerText = `⭐ Points: ${user.points}`;
+document.getElementById("stats").innerText =
+`⭐ Points: ${user.points} | 🔼 Level: ${user.level}`;
 
 /* ADD TO ITINERARY */
 function addToItinerary(p){
@@ -113,30 +114,14 @@ function addToItinerary(p){
   sessionStorage.setItem("itinerary",JSON.stringify(itin));
   user.points+=10;
   localStorage.setItem("pdv_user",JSON.stringify(user));
-  document.getElementById("stats").innerText=`⭐ Points: ${user.points}`;
+  document.getElementById("stats").innerText =
+  `⭐ Points: ${user.points} | 🔼 Level: ${user.level}`;
 }
 
-/* PLACES (SAFE MAP LINKS) */
-const places=[
-{
-  name:"Amboli Waterfall",
-  description:"Scenic monsoon waterfall in the Western Ghats.",
-  info:"3 km from Amboli village. Best June–October.",
-  link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra"
-},
-{
-  name:"Devkund Waterfall",
-  description:"Popular trekking waterfall destination.",
-  info:"5 km trek, rocky terrain.",
-  link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra"
-},
-{
-  name:"Pawna Dam",
-  description:"Reservoir near Lonavala.",
-  info:"Popular for camping.",
-  link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra"
-}
-];
+/* PLACES */
+const places=[{name:"Amboli Waterfall",description:"Scenic monsoon waterfall in the Western Ghats.",info:"3 km from Amboli village. Best June–October.",link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra"},
+{name:"Devkund Waterfall",description:"Popular trekking waterfall destination.",info:"5 km trek, rocky terrain.",link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra"},
+{name:"Pawna Dam",description:"Reservoir near Lonavala.",info:"Popular for camping.",link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra"}];
 
 const list=document.getElementById("list");
 const details=document.getElementById("details");
