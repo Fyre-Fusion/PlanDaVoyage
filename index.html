@@ -10,12 +10,8 @@
 body{margin:0;background:linear-gradient(135deg,#ffffff,#ece6ff);color:#111}
 
 .warning{
-  background:#c80000;
-  color:#fff;
-  text-align:center;
-  padding:10px;
-  font-weight:bold;
-  animation:pulse 2s infinite
+  background:#c80000;color:#fff;text-align:center;
+  padding:10px;font-weight:bold;animation:pulse 2s infinite
 }
 @keyframes pulse{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
 
@@ -23,57 +19,32 @@ header{text-align:center;padding:25px}
 header h1{color:#5a2cff;font-size:2.8rem}
 header p{color:#444}
 
-#userCount{
-  text-align:center;
-  color:#333;
-  margin-bottom:10px;
-  font-weight:bold
-}
+#stats{text-align:center;font-weight:bold;margin-bottom:10px}
 
 .container{
-  max-width:1100px;
-  margin:auto;
-  padding:20px;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:20px
+  max-width:1100px;margin:auto;padding:20px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px
 }
 
 .card{
-  background:#fff;
-  border-radius:16px;
+  background:#fff;border-radius:16px;padding:18px;
   box-shadow:0 0 20px rgba(90,44,255,.25);
-  padding:18px;
-  cursor:pointer;
-  transition:.25s
+  cursor:pointer;transition:.25s
 }
 .card:hover{transform:scale(1.02)}
+.card h3{color:#5a2cff}
+.details{display:none;margin-top:10px}
 
-.card h3{color:#5a2cff;margin-top:0}
-.card .details{display:none;margin-top:10px;color:#333;font-size:.95rem}
-
-.card button{
-  margin-top:12px;
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#5a2cff;
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer
+button{
+  margin-top:10px;padding:10px 14px;border:none;border-radius:10px;
+  background:#5a2cff;color:#fff;font-weight:bold;cursor:pointer
 }
 
 #aiBtn{
-  position:fixed;
-  bottom:20px;
-  right:20px;
+  position:fixed;bottom:20px;right:20px;
   background:linear-gradient(135deg,#5a2cff,#00b7ff);
-  color:white;
-  padding:14px 18px;
-  border-radius:30px;
-  font-weight:bold;
-  cursor:pointer;
-  box-shadow:0 0 20px #5a2cff
+  color:white;padding:14px 18px;border-radius:30px;
+  font-weight:bold;cursor:pointer;box-shadow:0 0 20px #5a2cff
 }
 
 footer{text-align:center;padding:15px;color:#555}
@@ -89,8 +60,7 @@ footer{text-align:center;padding:15px;color:#555}
 <p>Browse destinations • Build itinerary • Generate official plans</p>
 </header>
 
-<div id="userCount"></div>
-
+<div id="stats"></div>
 <div class="container" id="cards"></div>
 
 <div id="aiBtn" onclick="location.href='ai.html'">🤖 DaHelpeCenter</div>
@@ -98,19 +68,23 @@ footer{text-align:center;padding:15px;color:#555}
 <footer>© 2025 PlanDaVoyage</footer>
 
 <script>
-/* USER TRACKING (LOCAL) */
-let user = JSON.parse(localStorage.getItem("pdv_user")) || {visits:0};
-user.visits++;
+/* USER DATA */
+let user = JSON.parse(localStorage.getItem("pdv_user")) || {visits:0,points:0};
+user.visits++; user.points+=5;
 localStorage.setItem("pdv_user",JSON.stringify(user));
-document.getElementById("userCount").innerText =
-  "Estimated users online: " + (5 + (user.visits % 20));
+document.getElementById("stats").innerText =
+  `Points: ${user.points} | Estimated users online: ${5 + (user.visits % 20)}`;
 
-/* ITINERARY STORAGE */
-function addToItinerary(place){
+/* ADD TO ITINERARY */
+function addToItinerary(p){
   let itin = JSON.parse(localStorage.getItem("itinerary")) || [];
-  itin.push(place);
-  localStorage.setItem("itinerary", JSON.stringify(itin));
-  alert("Added to itinerary");
+  itin.push(p);
+  localStorage.setItem("itinerary",JSON.stringify(itin));
+  user.points+=10;
+  localStorage.setItem("pdv_user",JSON.stringify(user));
+  document.getElementById("stats").innerText =
+    `Points: ${user.points} | Estimated users online: ${5 + (user.visits % 20)}`;
+  alert("Added to itinerary (+10 points)");
 }
 
 /* PLACES */
@@ -120,42 +94,48 @@ const places=[
   type:"Waterfall",
   description:"Scenic monsoon waterfall in the Western Ghats.",
   info:"Approximately 3 km from Amboli village. Best visited June–October.",
-  link:"https://www.googlemaps.com/place/Amboli+Waterfall"
+  link:"https://www.google.com/maps/place/Amboli+Waterfall+Maharashtra/@15.9490391,73.9962674,17z"
 },
 {
   name:"Devkund Waterfall",
   type:"Waterfall",
   description:"Popular trekking waterfall destination.",
   info:"5 km one-way trek. Rocky terrain. Parking fee ₹600.",
-  link:"https://www.googlemaps.com/place/Devkund+Waterfall"
+  link:"https://www.google.com/maps/place/Devkund+Waterfalls/@19.3429035,73.2968508,17z"
+},
+{
+  name:"Lingmala Waterfall",
+  type:"Waterfall",
+  description:"Waterfall near Mahabaleshwar.",
+  info:"Best viewed during monsoon and post-monsoon months.",
+  link:"https://www.google.com/maps/place/Lingmala+Waterfalls/@17.925151,73.6738431,17z"
 },
 {
   name:"Pawna Dam",
   type:"Dam",
   description:"Reservoir and leisure destination near Lonavala.",
   info:"Accessible by road. Popular for camping.",
-  link:"https://www.googlemaps.com/place/Pawna+Dam"
+  link:"https://www.google.com/maps/place/Pawna+Dam/@18.6890664,73.4957089,15z"
 },
 {
   name:"Koyna Dam",
   type:"Dam",
   description:"Major hydroelectric dam in Maharashtra.",
   info:"Located in Satara district. Restricted areas present.",
-  link:"https://www.googlemaps.com/place/Koyna+Dam"
+  link:"https://www.google.com/maps/place/Koyna+Dam/@17.1582868,73.873575,15z"
 },
 {
   name:"Ginger Mumbai Airport",
   type:"Hotel",
   description:"Business-class hotel near Mumbai Airport.",
   info:"Rating: 4.0 stars.",
-  link:"https://www.makemytrip.com/hotels/hotel-details/?hotelId=202307182100313629",
+  link:"https://www.google.com/maps/place/Ginger+Mumbai+Airport/@19.09731,72.85384,15z",
   hotel:true
 }
 ];
 
-/* RENDER CARDS */
+/* RENDER */
 const wrap=document.getElementById("cards");
-
 places.forEach(p=>{
   const c=document.createElement("div");
   c.className="card";
@@ -166,13 +146,12 @@ places.forEach(p=>{
       <p>${p.description}</p>
       <p>${p.info}</p>
       <button>Add to Itinerary</button>
-    </div>
-  `;
+    </div>`;
   c.onclick=()=>{
     const d=c.querySelector(".details");
     d.style.display=d.style.display==="block"?"none":"block";
   };
-  c.querySelector("button").onclick=(e)=>{
+  c.querySelector("button").onclick=e=>{
     e.stopPropagation();
     addToItinerary({
       name:p.name,
