@@ -17,37 +17,61 @@ body{margin:0;background:linear-gradient(135deg,#ffffff,#ece6ff);color:#111}
 
 header{text-align:center;padding:25px}
 header h1{color:#5a2cff;font-size:2.8rem}
-header p{color:#444}
 
 #stats{text-align:center;font-weight:bold;margin-bottom:10px}
 
-.container{
-  max-width:1100px;margin:auto;padding:20px;
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px
+.search-bar{
+  max-width:1200px;margin:auto;padding:0 20px 10px
+}
+.search-bar input{
+  width:100%;padding:14px;border-radius:14px;
+  border:1px solid #ccc;font-size:1rem
 }
 
-.card{
-  background:#fff;border-radius:16px;padding:18px;
-  box-shadow:0 0 20px rgba(90,44,255,.25);
+.layout{
+  max-width:1200px;margin:auto;
+  display:grid;grid-template-columns:320px 1fr;
+  gap:20px;padding:20px
+}
+
+.list,.details{
+  background:#fff;border-radius:16px;
+  box-shadow:0 0 20px rgba(90,44,255,.25)
+}
+
+.item{
+  padding:16px;border-bottom:1px solid #eee;
   cursor:pointer;transition:.25s
 }
-.card:hover{transform:scale(1.02)}
-.card h3{color:#5a2cff}
-.details{display:none;margin-top:10px}
+.item:hover{background:#f3f0ff}
+.item.active{background:#5a2cff;color:#fff;font-weight:bold}
 
-button{
-  margin-top:10px;padding:10px 14px;border:none;border-radius:10px;
-  background:#5a2cff;color:#fff;font-weight:bold;cursor:pointer
+.details{
+  padding:24px;min-height:220px;
+  opacity:0;transform:translateY(10px);
+  transition:.35s ease
+}
+.details.show{opacity:1;transform:translateY(0)}
+
+.details h2{color:#5a2cff}
+.details button{
+  margin-top:15px;padding:12px 18px;
+  border:none;border-radius:12px;
+  background:#5a2cff;color:#fff;
+  font-weight:bold;cursor:pointer
 }
 
 #aiBtn{
   position:fixed;bottom:20px;right:20px;
   background:linear-gradient(135deg,#5a2cff,#00b7ff);
-  color:white;padding:14px 18px;border-radius:30px;
-  font-weight:bold;cursor:pointer;box-shadow:0 0 20px #5a2cff
+  color:#fff;padding:14px 18px;border-radius:30px;
+  font-weight:bold;cursor:pointer;
+  box-shadow:0 0 20px #5a2cff
 }
 
-footer{text-align:center;padding:15px;color:#555}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+}
 </style>
 </head>
 
@@ -55,114 +79,107 @@ footer{text-align:center;padding:15px;color:#555}
 
 <div class="warning">⚠️ UNDER TESTING & DEVELOPMENT ⚠️</div>
 
-<header>
-<h1>PlanDaVoyage</h1>
-<p>Browse destinations • Build itinerary • Generate official plans</p>
-</header>
-
+<header><h1>PlanDaVoyage</h1></header>
 <div id="stats"></div>
-<div class="container" id="cards"></div>
+
+<div class="search-bar">
+  <input id="search" placeholder="Search destinations..." />
+</div>
+
+<div class="layout">
+  <div class="list" id="list"></div>
+  <div class="details" id="details">
+    <p>Select a place to view details.</p>
+  </div>
+</div>
 
 <div id="aiBtn" onclick="location.href='ai.html'">🤖 DaHelpeCenter</div>
 
-<footer>© 2025 PlanDaVoyage</footer>
-
 <script>
-/* USER DATA */
-let user = JSON.parse(localStorage.getItem("pdv_user")) || {visits:0,points:0};
-user.visits++; user.points+=5;
+/* RESET SESSION ITINERARY */
+sessionStorage.removeItem("itinerary");
+
+/* POINTS */
+let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0};
+user.points += 5;
 localStorage.setItem("pdv_user",JSON.stringify(user));
-document.getElementById("stats").innerText =
-  `Points: ${user.points} | Estimated users online: ${5 + (user.visits % 20)}`;
+document.getElementById("stats").innerText = `⭐ Points: ${user.points}`;
 
 /* ADD TO ITINERARY */
 function addToItinerary(p){
-  let itin = JSON.parse(localStorage.getItem("itinerary")) || [];
+  let itin = JSON.parse(sessionStorage.getItem("itinerary")) || [];
+  if(itin.some(i=>i.name===p.name)){alert("Already added.");return;}
   itin.push(p);
-  localStorage.setItem("itinerary",JSON.stringify(itin));
+  sessionStorage.setItem("itinerary",JSON.stringify(itin));
   user.points+=10;
   localStorage.setItem("pdv_user",JSON.stringify(user));
-  document.getElementById("stats").innerText =
-    `Points: ${user.points} | Estimated users online: ${5 + (user.visits % 20)}`;
-  alert("Added to itinerary (+10 points)");
+  document.getElementById("stats").innerText=`⭐ Points: ${user.points}`;
 }
 
-/* PLACES */
+/* PLACES (SAFE MAP LINKS) */
 const places=[
 {
   name:"Amboli Waterfall",
-  type:"Waterfall",
   description:"Scenic monsoon waterfall in the Western Ghats.",
-  info:"Approximately 3 km from Amboli village. Best visited June–October.",
-  link:"https://www.google.com/maps/place/Amboli+Waterfall+Maharashtra/@15.9490391,73.9962674,17z"
+  info:"3 km from Amboli village. Best June–October.",
+  link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra"
 },
 {
   name:"Devkund Waterfall",
-  type:"Waterfall",
   description:"Popular trekking waterfall destination.",
-  info:"5 km one-way trek. Rocky terrain. Parking fee ₹600.",
-  link:"https://www.google.com/maps/place/Devkund+Waterfalls/@19.3429035,73.2968508,17z"
-},
-{
-  name:"Lingmala Waterfall",
-  type:"Waterfall",
-  description:"Waterfall near Mahabaleshwar.",
-  info:"Best viewed during monsoon and post-monsoon months.",
-  link:"https://www.google.com/maps/place/Lingmala+Waterfalls/@17.925151,73.6738431,17z"
+  info:"5 km trek, rocky terrain.",
+  link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra"
 },
 {
   name:"Pawna Dam",
-  type:"Dam",
-  description:"Reservoir and leisure destination near Lonavala.",
-  info:"Accessible by road. Popular for camping.",
-  link:"https://www.google.com/maps/place/Pawna+Dam/@18.6890664,73.4957089,15z"
-},
-{
-  name:"Koyna Dam",
-  type:"Dam",
-  description:"Major hydroelectric dam in Maharashtra.",
-  info:"Located in Satara district. Restricted areas present.",
-  link:"https://www.google.com/maps/place/Koyna+Dam/@17.1582868,73.873575,15z"
-},
-{
-  name:"Ginger Mumbai Airport",
-  type:"Hotel",
-  description:"Business-class hotel near Mumbai Airport.",
-  info:"Rating: 4.0 stars.",
-  link:"https://www.google.com/maps/place/Ginger+Mumbai+Airport/@19.09731,72.85384,15z",
-  hotel:true
+  description:"Reservoir near Lonavala.",
+  info:"Popular for camping.",
+  link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra"
 }
 ];
 
-/* RENDER */
-const wrap=document.getElementById("cards");
-places.forEach(p=>{
-  const c=document.createElement("div");
-  c.className="card";
-  c.innerHTML=`
-    <h3>${p.name}</h3>
-    <b>${p.type}</b>
-    <div class="details">
+const list=document.getElementById("list");
+const details=document.getElementById("details");
+const search=document.getElementById("search");
+
+function renderList(filter=""){
+  list.innerHTML="";
+  places.filter(p=>p.name.toLowerCase().includes(filter))
+    .forEach(p=>{
+      const item=document.createElement("div");
+      item.className="item";
+      item.textContent=p.name;
+      item.onclick=()=>{
+        document.querySelectorAll(".item").forEach(i=>i.classList.remove("active"));
+        item.classList.add("active");
+        showDetails(p);
+      };
+      list.appendChild(item);
+    });
+}
+
+function showDetails(p){
+  details.classList.remove("show");
+  setTimeout(()=>{
+    details.innerHTML=`
+      <h2>${p.name}</h2>
       <p>${p.description}</p>
-      <p>${p.info}</p>
+      <p><b>Info:</b> ${p.info}</p>
+      <p><a href="${p.link}" target="_blank">View on Google Maps</a></p>
       <button>Add to Itinerary</button>
-    </div>`;
-  c.onclick=()=>{
-    const d=c.querySelector(".details");
-    d.style.display=d.style.display==="block"?"none":"block";
-  };
-  c.querySelector("button").onclick=e=>{
-    e.stopPropagation();
-    addToItinerary({
+    `;
+    details.querySelector("button").onclick=()=>addToItinerary({
       name:p.name,
       description:p.description,
       itineraryInfo:p.info,
-      map:p.link,
-      type:p.hotel?"hotel":"place"
+      map:p.link
     });
-  };
-  wrap.appendChild(c);
-});
+    details.classList.add("show");
+  },150);
+}
+
+search.addEventListener("input",()=>renderList(search.value.toLowerCase()));
+renderList();
 </script>
 
 </body>
