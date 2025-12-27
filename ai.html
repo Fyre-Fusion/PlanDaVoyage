@@ -10,12 +10,8 @@
 body{margin:0;background:linear-gradient(135deg,#ffffff,#e9e4ff);color:#111}
 
 .warning{
-  background:#c80000;
-  color:#fff;
-  text-align:center;
-  padding:10px;
-  font-weight:bold;
-  animation:pulse 2s infinite
+  background:#c80000;color:#fff;text-align:center;
+  padding:10px;font-weight:bold;animation:pulse 2s infinite
 }
 @keyframes pulse{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
 
@@ -23,33 +19,29 @@ header{text-align:center;padding:20px}
 header h1{color:#5a2cff}
 
 .chat-box{
-  max-width:760px;
-  margin:20px auto 40px;
-  background:#fff;
-  border-radius:16px;
+  max-width:760px;margin:20px auto;
+  background:#fff;border-radius:16px;
   box-shadow:0 0 25px rgba(90,44,255,.3);
-  padding:20px;
-  display:flex;
-  flex-direction:column
+  padding:20px;display:flex;flex-direction:column
 }
 
 .messages{flex:1;overflow-y:auto;max-height:420px}
-
 .message{margin:10px 0;padding:14px 18px;border-radius:14px;line-height:1.6}
 .bot{background:#f1edff;border-left:4px solid #5a2cff}
 .user{background:#d6f0ff;margin-left:auto}
 
 .input-area{display:flex;gap:10px;margin-top:10px}
 input{flex:1;padding:12px;border-radius:10px;border:1px solid #ccc}
-button{padding:12px 18px;border-radius:10px;border:none;background:#5a2cff;color:#fff;font-weight:bold}
+button{padding:12px 18px;border-radius:10px;border:none;background:#5a2cff;color:#fff;font-weight:bold;cursor:pointer}
 
 a{color:#005eff;text-decoration:underline}
+.copy{margin-top:10px;background:#00b7ff}
 </style>
 </head>
 
 <body>
 
-<div class="warning">⚠️ AI-GENERATED ITINERARY — FOR SUPPORTING DOCUMENTATION ⚠️</div>
+<div class="warning">⚠️ AI-GENERATED ITINERARY — SUPPORTING DOCUMENT ONLY ⚠️</div>
 
 <header>
 <h1>DaHelpeCenter</h1>
@@ -62,6 +54,7 @@ a{color:#005eff;text-decoration:underline}
     <input id="input" placeholder="Type /total" />
     <button onclick="handle()">Send</button>
   </div>
+  <button class="copy" onclick="copyItinerary()">Copy Itinerary</button>
 </div>
 
 <script>
@@ -73,14 +66,12 @@ function userMsg(t){const d=document.createElement("div");d.className="message u
 
 input.addEventListener("keydown",e=>{if(e.key==="Enter")handle();});
 
-bot("This assistant generates a formal, structured travel itinerary.");
-bot("Type /total to generate your itinerary.");
+bot("Type /total to generate your official travel itinerary.");
 
 function handle(){
   const v=input.value.trim();
   if(!v)return;
-  userMsg(v);
-  input.value="";
+  userMsg(v); input.value="";
   if(v.toLowerCase().includes("thank")){bot("You are most welcome.");return;}
   if(v==="/total"){generate();return;}
   bot("Unrecognized command. Please type /total.");
@@ -96,15 +87,23 @@ function generate(){
     out+=`The traveler is scheduled to visit ${p.name} for sightseeing purposes.<br>`;
     out+=`Description: ${p.description}<br>`;
     if(p.itineraryInfo) out+=`Additional information: ${p.itineraryInfo}<br>`;
-    if(p.type==="hotel"){
-      out+=`Accommodation booking reference: <a href="${p.map}" target="_blank">Booking on MakeMyTrip</a><br>`;
-    } else {
-      out+=`Location reference: <a href="${p.map}" target="_blank">Google Maps</a><br>`;
-    }
+    out+=p.type==="hotel"
+      ? `Accommodation reference: <a href="${p.map}" target="_blank">Booking Details</a><br>`
+      : `Location reference: <a href="${p.map}" target="_blank">Google Maps</a><br>`;
     out+="The visit is planned during standard daytime hours.<br><br>";
   });
-  out+="<b>End of itinerary.</b>";
   bot(out);
+}
+
+function copyItinerary(){
+  const itin=JSON.parse(localStorage.getItem("itinerary"))||[];
+  if(itin.length===0){alert("Nothing to copy");return;}
+  let t="";
+  itin.forEach((p,i)=>{
+    t+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.itineraryInfo||""}\n${p.map}\n\n`;
+  });
+  navigator.clipboard.writeText(t);
+  alert("Itinerary copied");
 }
 </script>
 
