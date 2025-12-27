@@ -43,6 +43,9 @@ input{flex:1;padding:12px;border-radius:10px;border:1px solid #ccc}
 button{padding:12px 18px;border:none;border-radius:10px;background:#5a2cff;color:#fff;font-weight:bold}
 .copy{margin-top:10px;background:#00b7ff}
 </style>
+
+<!-- PDF LIB (ADDED) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -53,17 +56,17 @@ button{padding:12px 18px;border:none;border-radius:10px;background:#5a2cff;color
 <div class="chat">
   <div class="messages" id="chat"></div>
   <div class="input">
-    <input id="input" placeholder="Type /total" />
+    <input id="input" placeholder="Type generate my trip" />
     <button onclick="send()">Send</button>
   </div>
-  <button class="copy" onclick="copy()">Copy Itinerary</button>
+  <button class="copy" onclick="downloadPDF()">Download PDF</button>
 </div>
 
 <script>
 const chat=document.getElementById("chat");
 const input=document.getElementById("input");
 
-input.addEventListener("keydown",e=>{if(e.key==="Enter")send()});
+let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0,level:1};
 
 function add(text,cls){
   const d=document.createElement("div");
@@ -73,39 +76,61 @@ function add(text,cls){
   chat.scrollTop=chat.scrollHeight;
 }
 
-add("Type <b>/total</b> to generate your itinerary.","bot");
+add("Use the *generate my trip* command to generate your itinerary.","bot");
+
+function levelUp(){
+  if(user.points<100) return false;
+  user.points-=100;
+  user.level++;
+  localStorage.setItem("pdv_user",JSON.stringify(user));
+  return true;
+}
 
 function send(){
-  const v=input.value.trim();
+  const raw=input.value.trim();
+  const v=raw.toLowerCase();
   if(!v) return;
-  add(v,"user");input.value="";
-  if(v.toLowerCase().includes("thank")){
-    add("You are most welcome.","bot");return;
+  add(raw,"user");
+  input.value="";
+
+  if(v==="generate my trip"||v==="genrmytrip"){
+    generate();return;
   }
-  if(v==="/total"){generate();return;}
-  add("Unknown command.","bot");
+
+  add("Use the *generate my trip* command to generate your itinerary.","bot");
 }
+
+let lastText="";
 
 function generate(){
   const itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
-  if(itin.length===0){add("No locations added.","bot");return;}
-  let out="<b>Official Travel Itinerary</b><br><br>";
+  if(!itin.length){add("No locations added.","bot");return;}
+
+  const leveled=levelUp();
+
+  let out=`<b>🧳 Travel Itinerary</b><br>
+  Level: <b>${user.level}</b><br><br>`;
+
+  let text=`Travel Itinerary\nLevel ${user.level}\n\n`;
+
   itin.forEach((p,i)=>{
-    out+=`Day ${i+1}: <b>${p.name}</b><br>${p.description}<br>`;
-    if(p.itineraryInfo) out+=`Info: ${p.itineraryInfo}<br>`;
-    out+=`<a href="${p.map}" target="_blank">Google Maps</a><br><br>`;
+    out+=`Day ${i+1}: <b>${p.name}</b><br>${p.description}<br>${p.itineraryInfo}<br><br>`;
+    text+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.map}\n\n`;
   });
+
+  if(leveled) out+="✨ 100 points spent – itinerary leveled up!";
+  else out+="⚠️ Not enough points to level up.";
+
+  lastText=text;
   add(out,"bot");
 }
 
-function copy(){
-  const itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
-  let t="";
-  itin.forEach((p,i)=>{
-    t+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.map}\n\n`;
-  });
-  navigator.clipboard.writeText(t);
-  alert("Copied");
+function downloadPDF(){
+  if(!lastText){alert("Generate itinerary first.");return;}
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF();
+  pdf.text(lastText,10,10);
+  pdf.save("PlanDaVoyage-Itinerary.pdf");
 }
 </script>
 
