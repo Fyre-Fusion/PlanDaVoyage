@@ -30,35 +30,56 @@ header h1{color:#5a2cff;font-size:2.8rem}
 
 .layout{
   max-width:1200px;margin:auto;
-  display:grid;grid-template-columns:320px 1fr;
-  gap:20px;padding:20px
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  padding:20px
 }
 
-.list,.details{
-  background:#fff;border-radius:16px;
-  box-shadow:0 0 20px rgba(90,44,255,.25)
+/* LEFT & RIGHT CARDS */
+.card-panel{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 0 20px rgba(90,44,255,.25);
+  padding:20px;
 }
 
-.item{
-  padding:16px;border-bottom:1px solid #eee;
-  cursor:pointer;transition:.25s
+.place-card{
+  padding:14px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:.25s;
 }
-.item:hover{background:#f3f0ff}
-.item.active{background:#5a2cff;color:#fff;font-weight:bold}
+.place-card:hover{background:#f3f0ff}
 
-.details{
-  padding:24px;min-height:220px;
-  opacity:0;transform:translateY(10px);
-  transition:.35s ease
+.preview{
+  min-height:220px;
+  border:2px dashed #ccc;
+  border-radius:12px;
+  padding:20px;
+  color:#666;
+  position:relative;
 }
-.details.show{opacity:1;transform:translateY(0)}
 
-.details h2{color:#5a2cff}
-.details button{
-  margin-top:15px;padding:12px 18px;
-  border:none;border-radius:12px;
-  background:#5a2cff;color:#fff;
-  font-weight:bold;cursor:pointer
+.close{
+  position:absolute;
+  top:10px;
+  right:14px;
+  font-size:18px;
+  cursor:pointer;
+}
+
+button{
+  margin-top:15px;
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:#5a2cff;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer
 }
 
 #aiBtn{
@@ -87,10 +108,17 @@ header h1{color:#5a2cff;font-size:2.8rem}
 </div>
 
 <div class="layout">
-  <div class="list" id="list"></div>
-  <div class="details" id="details">
-    <p>Select a place to view details.</p>
+
+  <!-- LEFT SIDE -->
+  <div class="card-panel" id="list"></div>
+
+  <!-- RIGHT SIDE -->
+  <div class="card-panel">
+    <div id="details" class="preview">
+      Click a destination card to view details here.
+    </div>
   </div>
+
 </div>
 
 <div id="aiBtn" onclick="location.href='ai.html'">🤖 DaHelpeCenter</div>
@@ -99,12 +127,11 @@ header h1{color:#5a2cff;font-size:2.8rem}
 /* RESET SESSION ITINERARY */
 sessionStorage.removeItem("itinerary");
 
-/* POINTS + LEVEL (ADDED) */
-let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0,level:1};
+/* POINTS ONLY */
+let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0};
 user.points += 5;
 localStorage.setItem("pdv_user",JSON.stringify(user));
-document.getElementById("stats").innerText =
-`⭐ Points: ${user.points} | 🔼 Level: ${user.level}`;
+document.getElementById("stats").innerText = `⭐ Points: ${user.points}`;
 
 /* ADD TO ITINERARY */
 function addToItinerary(p){
@@ -114,14 +141,30 @@ function addToItinerary(p){
   sessionStorage.setItem("itinerary",JSON.stringify(itin));
   user.points+=10;
   localStorage.setItem("pdv_user",JSON.stringify(user));
-  document.getElementById("stats").innerText =
-  `⭐ Points: ${user.points} | 🔼 Level: ${user.level}`;
+  document.getElementById("stats").innerText=`⭐ Points: ${user.points}`;
 }
 
 /* PLACES */
-const places=[{name:"Amboli Waterfall",description:"Scenic monsoon waterfall in the Western Ghats.",info:"3 km from Amboli village. Best June–October.",link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra"},
-{name:"Devkund Waterfall",description:"Popular trekking waterfall destination.",info:"5 km trek, rocky terrain.",link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra"},
-{name:"Pawna Dam",description:"Reservoir near Lonavala.",info:"Popular for camping.",link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra"}];
+const places=[
+{
+  name:"Amboli Waterfall",
+  description:"Scenic monsoon waterfall in the Western Ghats.",
+  info:"3 km from Amboli village. Best June–October.",
+  link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra"
+},
+{
+  name:"Devkund Waterfall",
+  description:"Popular trekking waterfall destination.",
+  info:"5 km trek, rocky terrain.",
+  link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra"
+},
+{
+  name:"Pawna Dam",
+  description:"Reservoir near Lonavala.",
+  info:"Popular for camping.",
+  link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra"
+}
+];
 
 const list=document.getElementById("list");
 const details=document.getElementById("details");
@@ -131,36 +174,27 @@ function renderList(filter=""){
   list.innerHTML="";
   places.filter(p=>p.name.toLowerCase().includes(filter))
     .forEach(p=>{
-      const item=document.createElement("div");
-      item.className="item";
-      item.textContent=p.name;
-      item.onclick=()=>{
-        document.querySelectorAll(".item").forEach(i=>i.classList.remove("active"));
-        item.classList.add("active");
-        showDetails(p);
-      };
-      list.appendChild(item);
+      const card=document.createElement("div");
+      card.className="place-card";
+      card.innerHTML=`<b>${p.name}</b><br>${p.description}`;
+      card.onclick=()=>showDetails(p);
+      list.appendChild(card);
     });
 }
 
 function showDetails(p){
-  details.classList.remove("show");
-  setTimeout(()=>{
-    details.innerHTML=`
-      <h2>${p.name}</h2>
-      <p>${p.description}</p>
-      <p><b>Info:</b> ${p.info}</p>
-      <p><a href="${p.link}" target="_blank">View on Google Maps</a></p>
-      <button>Add to Itinerary</button>
-    `;
-    details.querySelector("button").onclick=()=>addToItinerary({
-      name:p.name,
-      description:p.description,
-      itineraryInfo:p.info,
-      map:p.link
-    });
-    details.classList.add("show");
-  },150);
+  details.innerHTML=`
+    <span class="close" onclick="clearDetails()">×</span>
+    <h2>${p.name}</h2>
+    <p>${p.description}</p>
+    <p><b>Info:</b> ${p.info}</p>
+    <a href="${p.link}" target="_blank">📍 Google Maps</a><br>
+    <button onclick='addToItinerary(${JSON.stringify(p)})'>Add to Itinerary</button>
+  `;
+}
+
+function clearDetails(){
+  details.innerHTML="Click a destination card to view details here.";
 }
 
 search.addEventListener("input",()=>renderList(search.value.toLowerCase()));
