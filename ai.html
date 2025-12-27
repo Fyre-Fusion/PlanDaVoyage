@@ -2,217 +2,110 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DaHelpeCenter — PlanDaVoyage</title>
+<title>DaHelpeCenter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
-body{margin:0;background:linear-gradient(135deg,#ffffff,#e9e4ff);color:#111}
+body{margin:0;background:#f6f3ff}
 
 .warning{
-  background:#c80000;color:#fff;text-align:center;
-  padding:10px;font-weight:bold;animation:pulse 2s infinite
+  background:#c80000;color:#fff;
+  text-align:center;padding:10px;
+  font-weight:bold;animation:pulse 2s infinite
 }
 @keyframes pulse{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
 
-#backHomeBtn{
-  position:fixed;
-  top:15px;
-  right:15px;
-  padding:10px 16px;
-  border:none;
-  border-radius:22px;
-  background:linear-gradient(135deg,#5a2cff,#00b7ff);
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-  box-shadow:0 0 15px rgba(90,44,255,.6);
-  z-index:1000;
+#home{
+  position:fixed;top:15px;right:15px;
+  padding:10px 16px;border:none;
+  border-radius:20px;
+  background:#5a2cff;color:#fff;
+  font-weight:bold;cursor:pointer
 }
-#backHomeBtn:hover{transform:scale(1.05)}
 
-header{text-align:center;padding:20px}
-header h1{color:#5a2cff}
-header p{color:#444}
-
-.chat-box{
-  max-width:760px;
-  margin:20px auto 40px;
-  background:#fff;
-  border-radius:16px;
+.chat{
+  max-width:760px;margin:80px auto 40px;
+  background:#fff;border-radius:16px;
   box-shadow:0 0 25px rgba(90,44,255,.3);
-  padding:20px;
-  display:flex;
-  flex-direction:column;
+  padding:20px;display:flex;flex-direction:column
 }
 
-.messages{
-  flex:1;
-  overflow-y:auto;
-  max-height:420px;
-}
+.messages{flex:1;overflow-y:auto}
+.msg{margin:10px 0;padding:14px 18px;border-radius:14px}
+.bot{background:#efe9ff}
+.user{background:#d6f0ff;margin-left:auto}
 
-.message{
-  margin:10px 0;
-  padding:14px 18px;
-  border-radius:14px;
-  line-height:1.6;
+.input{
+  display:flex;gap:10px;margin-top:10px
 }
-
-.bot{
-  background:#f1edff;
-  border-left:4px solid #5a2cff;
-}
-
-.user{
-  background:#d6f0ff;
-  margin-left:auto;
-}
-
-.input-area{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
-
-input{
-  flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:1rem;
-}
-
-button{
-  padding:12px 18px;
-  border-radius:10px;
-  border:none;
-  background:#5a2cff;
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.copy{
-  margin-top:10px;
-  background:#00b7ff;
-}
-
-a{color:#005eff;text-decoration:underline}
-footer{text-align:center;padding:10px;color:#555}
+input{flex:1;padding:12px;border-radius:10px;border:1px solid #ccc}
+button{padding:12px 18px;border:none;border-radius:10px;background:#5a2cff;color:#fff;font-weight:bold}
+.copy{margin-top:10px;background:#00b7ff}
 </style>
 </head>
 
 <body>
 
-<div class="warning">⚠️ AI-GENERATED ITINERARY — SUPPORTING DOCUMENT ONLY ⚠️</div>
+<div class="warning">⚠️ AI-GENERATED DOCUMENT ⚠️</div>
+<button id="home" onclick="location.href='index.html'">⬅ Home</button>
 
-<button id="backHomeBtn" onclick="goHome()">⬅ Back to Home</button>
-
-<header>
-<h1>DaHelpeCenter</h1>
-<p>Professional Itinerary Generator</p>
-</header>
-
-<div class="chat-box">
+<div class="chat">
   <div class="messages" id="chat"></div>
-  <div class="input-area">
+  <div class="input">
     <input id="input" placeholder="Type /total" />
-    <button onclick="handle()">Send</button>
+    <button onclick="send()">Send</button>
   </div>
-  <button class="copy" onclick="copyItinerary()">Copy Itinerary</button>
+  <button class="copy" onclick="copy()">Copy Itinerary</button>
 </div>
 
-<footer>© 2025 PlanDaVoyage</footer>
-
 <script>
-/* REDIRECT TO INDEX ON REFRESH */
-if (performance.getEntriesByType("navigation")[0].type === "reload") {
-  window.location.href = "index.html";
-}
-
 const chat=document.getElementById("chat");
 const input=document.getElementById("input");
 
-function bot(t){
+input.addEventListener("keydown",e=>{if(e.key==="Enter")send()});
+
+function add(text,cls){
   const d=document.createElement("div");
-  d.className="message bot";
-  d.innerHTML=t;
+  d.className="msg "+cls;
+  d.innerHTML=text;
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
 }
 
-function userMsg(t){
-  const d=document.createElement("div");
-  d.className="message user";
-  d.textContent=t;
-  chat.appendChild(d);
-  chat.scrollTop=chat.scrollHeight;
-}
+add("Type <b>/total</b> to generate your itinerary.","bot");
 
-input.addEventListener("keydown",e=>{
-  if(e.key==="Enter") handle();
-});
-
-bot("Type /total to generate your official travel itinerary.");
-
-function handle(){
+function send(){
   const v=input.value.trim();
   if(!v) return;
-  userMsg(v);
-  input.value="";
-
+  add(v,"user");input.value="";
   if(v.toLowerCase().includes("thank")){
-    bot("You are most welcome.");
-    return;
+    add("You are most welcome.","bot");return;
   }
-
-  if(v==="/total"){
-    generate();
-    return;
-  }
-
-  bot("Unrecognized command. Please type /total.");
+  if(v==="/total"){generate();return;}
+  add("Unknown command.","bot");
 }
 
 function generate(){
-  const itin=JSON.parse(localStorage.getItem("itinerary"))||[];
-  if(itin.length===0){
-    bot("No locations have been added to your itinerary.");
-    return;
-  }
-
+  const itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
+  if(itin.length===0){add("No locations added.","bot");return;}
   let out="<b>Official Travel Itinerary</b><br><br>";
   itin.forEach((p,i)=>{
-    out+=`<b>Day ${i+1} – ${p.name}, Maharashtra</b><br>`;
-    out+=`The traveler is scheduled to visit ${p.name} for sightseeing purposes.<br>`;
-    out+=`Description: ${p.description}<br>`;
-    if(p.itineraryInfo) out+=`Additional information: ${p.itineraryInfo}<br>`;
-    out+=p.type==="hotel"
-      ? `Accommodation reference: <a href="${p.map}" target="_blank">Booking Details</a><br>`
-      : `Location reference: <a href="${p.map}" target="_blank">Google Maps</a><br>`;
-    out+="The visit is planned during standard daytime hours.<br><br>";
+    out+=`Day ${i+1}: <b>${p.name}</b><br>${p.description}<br>`;
+    if(p.itineraryInfo) out+=`Info: ${p.itineraryInfo}<br>`;
+    out+=`<a href="${p.map}" target="_blank">Google Maps</a><br><br>`;
   });
-
-  bot(out);
+  add(out,"bot");
 }
 
-function copyItinerary(){
-  const itin=JSON.parse(localStorage.getItem("itinerary"))||[];
-  if(itin.length===0){
-    alert("Nothing to copy.");
-    return;
-  }
+function copy(){
+  const itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
   let t="";
   itin.forEach((p,i)=>{
-    t+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.itineraryInfo||""}\n${p.map}\n\n`;
+    t+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.map}\n\n`;
   });
   navigator.clipboard.writeText(t);
-  alert("Itinerary copied.");
-}
-
-function goHome(){
-  window.location.href="index.html";
+  alert("Copied");
 }
 </script>
 
