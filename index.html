@@ -2,102 +2,213 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PlanDaVoyage - Trip Planner</title>
+<title>PlanDaVoyage</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif;margin:0;padding:0}
-body{background:#0b0033;color:#fff}
-
-header{text-align:center;padding:30px 0;background:#150050;box-shadow:0 0 20px #5a2cff}
-header h1{color:#00f0ff;font-size:2.5rem;text-shadow:0 0 10px #5a2cff}
-
-.top-section{
-  max-width:800px;margin:40px auto;padding:20px;
-  background:linear-gradient(135deg,#0b0033,#150050);
-  border-radius:16px;
-  box-shadow:0 0 25px #5a2cff;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body{
+  margin:0;
+  background:linear-gradient(135deg,#05001a,#12003d);
+  color:#fff
 }
 
-.top-section label{margin-bottom:6px;font-weight:bold}
-.top-section input, .top-section select{
-  padding:12px 14px;border-radius:10px;border:none;
-  outline:none;font-size:1rem;
-  background:#0b0033;color:#fff;
+.warning{
+  background:#c80000;color:#fff;text-align:center;
+  padding:10px;font-weight:bold
+}
+
+header{text-align:center;padding:20px}
+header h1{
+  color:#00f0ff;
+  text-shadow:0 0 12px #5a2cff;
+  font-size:2.6rem
+}
+
+#stats{text-align:center;font-weight:bold;margin-bottom:10px}
+
+/* 🔷 TOP BAR (MakeMyTrip style) */
+.top-bar{
+  max-width:1200px;
+  margin:20px auto;
+  padding:15px;
+  background:#0b0033;
+  border-radius:16px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  box-shadow:0 0 25px #5a2cff
+}
+.top-bar input,.top-bar select{
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  background:#05001a;
+  color:#fff;
   box-shadow:inset 0 0 8px #5a2cff;
 }
-
-.top-section select{cursor:pointer}
-.top-section button{
-  padding:14px;font-weight:bold;
-  border:none;border-radius:12px;
+.top-bar button{
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
   background:linear-gradient(135deg,#5a2cff,#8000ff);
   color:#fff;
-  font-size:1rem;
+  font-weight:bold;
   cursor:pointer;
-  box-shadow:0 0 15px #5a2cff;
-  transition:0.3s;
-}
-.top-section button:hover{
-  box-shadow:0 0 25px #00f0ff;
+  box-shadow:0 0 15px #5a2cff
 }
 
+/* LAYOUT */
+.layout{
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  padding:20px
+}
+
+.panel{
+  background:#0b0033;
+  border-radius:16px;
+  box-shadow:0 0 20px #5a2cff;
+  padding:20px
+}
+
+.place-card{
+  padding:14px;
+  border-radius:12px;
+  background:#12003d;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:.25s
+}
+.place-card:hover{background:#1c0066}
+
+.preview{
+  min-height:220px;
+  border:2px dashed #5a2cff;
+  border-radius:12px;
+  padding:20px;
+  opacity:0;
+  transform:translateY(10px);
+  transition:.4s
+}
+.preview.show{opacity:1;transform:translateY(0)}
+
+.close{
+  position:absolute;
+  right:14px;
+  top:10px;
+  cursor:pointer
+}
+
+button.add{
+  margin-top:10px;
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#5a2cff;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer
+}
+
+#aiBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:linear-gradient(135deg,#5a2cff,#00f0ff);
+  padding:14px 18px;
+  border-radius:30px;
+  cursor:pointer;
+  font-weight:bold;
+  box-shadow:0 0 25px #5a2cff
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .top-bar{flex-wrap:wrap}
+}
 </style>
 </head>
+
 <body>
 
-<header><h1>PlanDaVoyage - Trip Planner</h1></header>
+<div class="warning">⚠️ UNDER DEVELOPMENT ⚠️</div>
 
-<div class="top-section">
-  <div>
-    <label for="people">Number of People</label>
-    <input type="number" id="people" placeholder="Enter number of people" min="1" value="1">
-  </div>
+<header><h1>PlanDaVoyage</h1></header>
+<div id="stats"></div>
 
-  <div>
-    <label for="country">Country</label>
-    <input type="text" id="country" placeholder="Enter country">
-  </div>
-
-  <div>
-    <label for="state">State (optional)</label>
-    <input type="text" id="state" placeholder="Enter state">
-  </div>
-
-  <div>
-    <label for="city">City</label>
-    <input type="text" id="city" placeholder="Enter city">
-  </div>
-
-  <div>
-    <label for="tripType">Trip Type</label>
-    <select id="tripType">
-      <option value="family">Family</option>
-      <option value="bachelor">Bachelor</option>
-    </select>
-  </div>
-
-  <button onclick="submitTrip()">Plan My Trip</button>
+<!-- 🔷 TOP BAR -->
+<div class="top-bar">
+  <input type="number" id="people" min="1" value="1" placeholder="People">
+  <input id="country" placeholder="Country">
+  <input id="state" placeholder="State">
+  <input id="city" placeholder="City">
+  <select id="type">
+    <option>Family</option>
+    <option>Bachelor</option>
+  </select>
+  <button>Search</button>
 </div>
 
+<!-- MAIN -->
+<div class="layout">
+  <div class="panel" id="list"></div>
+  <div class="panel">
+    <div id="details" class="preview">Select a destination</div>
+  </div>
+</div>
+
+<div id="aiBtn" onclick="location.href='ai.html'">🤖 DaHelpeCenter</div>
+
 <script>
-function submitTrip(){
-  const people=document.getElementById("people").value;
-  const country=document.getElementById("country").value;
-  const state=document.getElementById("state").value;
-  const city=document.getElementById("city").value;
-  const type=document.getElementById("tripType").value;
+sessionStorage.removeItem("itinerary");
 
-  if(!people || !country || !city){
-    alert("Please fill in at least Number of People, Country and City.");
-    return;
-  }
+let user=JSON.parse(localStorage.getItem("pdv_user"))||{points:0};
+user.points+=5;
+localStorage.setItem("pdv_user",JSON.stringify(user));
+stats.innerText=`⭐ Points: ${user.points}`;
 
-  alert(`Trip Planned!\nPeople: ${people}\nCountry: ${country}\nState: ${state}\nCity: ${city}\nTrip Type: ${type}`);
+const places=[
+ {name:"Amboli Waterfall",description:"Scenic monsoon waterfall.",info:"Best June–Oct",link:"https://maps.google.com"},
+ {name:"Devkund Waterfall",description:"Popular trek waterfall.",info:"5 km trek",link:"https://maps.google.com"},
+ {name:"Pawna Dam",description:"Camping destination.",info:"Near Lonavala",link:"https://maps.google.com"}
+];
+
+function addToItinerary(p){
+ let i=JSON.parse(sessionStorage.getItem("itinerary"))||[];
+ if(i.some(x=>x.name===p.name))return alert("Already added");
+ i.push(p);
+ sessionStorage.setItem("itinerary",JSON.stringify(i));
+ user.points+=10;
+ localStorage.setItem("pdv_user",JSON.stringify(user));
+ stats.innerText=`⭐ Points: ${user.points}`;
 }
+
+function showDetails(p){
+ details.classList.remove("show");
+ setTimeout(()=>{
+  details.innerHTML=`
+   <span class="close" onclick="details.innerHTML='Select a destination';details.classList.remove('show')">✕</span>
+   <h2>${p.name}</h2>
+   <p>${p.description}</p>
+   <p><b>Info:</b> ${p.info}</p>
+   <button class="add" onclick='addToItinerary(${JSON.stringify(p)})'>Add to Itinerary</button>
+  `;
+  details.classList.add("show");
+ },150);
+}
+
+list.innerHTML="";
+places.forEach(p=>{
+ let d=document.createElement("div");
+ d.className="place-card";
+ d.innerHTML=`<b>${p.name}</b><br>${p.description}`;
+ d.onclick=()=>showDetails(p);
+ list.appendChild(d);
+});
 </script>
 
 </body>
