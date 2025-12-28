@@ -7,7 +7,7 @@
 
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
-body{margin:0;background:#f6f3ff}
+body{margin:0;background:#0a0a2a;color:#fff}
 
 .warning{
   background:#c80000;color:#fff;
@@ -24,60 +24,25 @@ body{margin:0;background:#f6f3ff}
   font-weight:bold;cursor:pointer
 }
 
-.wrapper{
-  max-width:1100px;
-  margin:80px auto 40px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-  padding:0 20px;
-}
-
-.panel{
-  background:#fff;
-  border-radius:16px;
+.chat{
+  max-width:760px;margin:80px auto 40px;
+  background:#11114d;border-radius:16px;
   box-shadow:0 0 25px rgba(90,44,255,.3);
-  padding:20px;
-  display:flex;
-  flex-direction:column;
+  padding:20px;display:flex;flex-direction:column
 }
 
-.card{
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:14px;
-  margin-bottom:12px;
-  cursor:pointer;
-  transition:.25s;
-  position:relative;
-}
-.card:hover{background:#f1ecff}
-
-.close{
-  position:absolute;
-  top:6px;
-  right:10px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.preview{
-  flex:1;
-  border:2px dashed #ccc;
-  border-radius:12px;
-  padding:20px;
-  color:#666;
-}
+.messages{flex:1;overflow-y:auto}
+.msg{margin:10px 0;padding:14px 18px;border-radius:14px}
+.bot{background:#1a1a3d}
+.user{background:#22225a;margin-left:auto}
 
 .input{
-  display:flex;gap:10px;margin-top:15px
+  display:flex;gap:10px;margin-top:10px
 }
-input{flex:1;padding:12px;border-radius:10px;border:1px solid #ccc}
+input{flex:1;padding:12px;border-radius:10px;border:1px solid #555;background:#11114d;color:#fff;}
 button{padding:12px 18px;border:none;border-radius:10px;background:#5a2cff;color:#fff;font-weight:bold}
-.download{margin-top:15px;background:#00b7ff}
+.copy{margin-top:10px;background:#00b7ff}
 </style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -85,91 +50,62 @@ button{padding:12px 18px;border:none;border-radius:10px;background:#5a2cff;color
 <div class="warning">⚠️ AI-GENERATED DOCUMENT ⚠️</div>
 <button id="home" onclick="location.href='index.html'">⬅ Home</button>
 
-<div class="wrapper">
-
-  <div class="panel">
-    <b>Itinerary Cards</b>
-    <div id="cards"></div>
-
-    <div class="input">
-      <input id="input" placeholder="Type generate my trip" />
-      <button onclick="send()">Send</button>
-    </div>
+<div class="chat">
+  <div class="messages" id="chat"></div>
+  <div class="input">
+    <input id="input" placeholder="Type /total or /genrmytrip" />
+    <button onclick="send()">Send</button>
   </div>
-
-  <div class="panel">
-    <b>Preview</b>
-    <div id="preview" class="preview">
-      Click a card to view details here.
-    </div>
-    <button class="download" onclick="downloadPDF()">Download PDF</button>
-  </div>
-
+  <button class="copy" onclick="copy()">Copy Itinerary</button>
 </div>
 
 <script>
-// ⚠️ REDIRECT IF NO ITINERARY
-const itinCheck = JSON.parse(sessionStorage.getItem("itinerary")) || [];
-if(itinCheck.length === 0){
-    alert("No itinerary found. Redirecting to main page.");
-    location.href = "index.html";
-}
-
+const chat=document.getElementById("chat");
 const input=document.getElementById("input");
-const cards=document.getElementById("cards");
-const preview=document.getElementById("preview");
-
-let lastText="";
 
 input.addEventListener("keydown",e=>{if(e.key==="Enter")send()});
 
+function add(text,cls){
+  const d=document.createElement("div");
+  d.className="msg "+cls;
+  d.innerHTML=text;
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+add("Type <b>/total</b> or <b>/genrmytrip</b> to generate your itinerary.","bot");
+
 function send(){
-  const raw=input.value.trim();
-  const v=raw.toLowerCase();
+  const v=input.value.trim();
   if(!v) return;
-  input.value="";
-
-  if(v==="generate my trip" || v==="genrmytrip"){
-    generate();
-    return;
+  add(v,"user");input.value="";
+  if(v.toLowerCase().includes("thank")){
+    add("You are most welcome.","bot");return;
   }
-
-  alert("Use the *generate my trip* command");
+  if(v==="/total" || v==="/genrmytrip"){generate();return;}
+  add("Unknown command.","bot");
 }
 
 function generate(){
   const itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
-  if(!itin.length){alert("No locations added.");return;}
-
-  cards.innerHTML="";
-  lastText="Travel Itinerary\n\n";
-
+  if(itin.length===0){add("No locations added.","bot");return;}
+  let out="<b>Official Travel Itinerary</b><br><br>";
   itin.forEach((p,i)=>{
-    const c=document.createElement("div");
-    c.className="card";
-    c.innerHTML=`
-      <span class="close" onclick="this.parentElement.remove()">×</span>
-      <b>Day ${i+1}</b><br>${p.name}
-    `;
-    c.onclick=()=>{
-      preview.innerHTML=`
-        <h3>${p.name}</h3>
-        <p>${p.description}</p>
-        <p>${p.itineraryInfo || ""}</p>
-        <a href="${p.map}" target="_blank">📍 Google Maps</a>
-      `;
-    };
-    cards.appendChild(c);
-    lastText+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.map}\n\n`;
+    out+=`Day ${i+1}: <b>${p.name}</b><br>${p.description}<br>`;
+    if(p.itineraryInfo) out+=`Info: ${p.itineraryInfo}<br>`;
+    out+=`<a href="${p.map}" target="_blank">Google Maps</a><br><br>`;
   });
+  add(out,"bot");
 }
 
-function downloadPDF(){
-  if(!lastText){alert("Generate itinerary first.");return;}
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF();
-  pdf.text(lastText,10,10);
-  pdf.save("PlanDaVoyage-Itinerary.pdf");
+function copy(){
+  const itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
+  let t="";
+  itin.forEach((p,i)=>{
+    t+=`Day ${i+1}: ${p.name}\n${p.description}\n${p.map}\n\n`;
+  });
+  navigator.clipboard.writeText(t);
+  alert("Copied");
 }
 </script>
 
