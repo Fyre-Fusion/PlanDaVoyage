@@ -94,6 +94,7 @@ header h1{color:#8c2cff;font-size:2.8rem}
   <div class="card" id="countryCard">Country</div>
   <div class="card" id="stateCard">State</div>
   <div class="card" id="cityCard">City</div>
+  <button onclick="downloadPDF()" style="background:#00b7ff;color:#fff;border:none;padding:12px 18px;border-radius:12px;cursor:pointer;">Download PDF</button>
 </div>
 
 <div class="layout">
@@ -104,6 +105,8 @@ header h1{color:#8c2cff;font-size:2.8rem}
 </div>
 
 <div id="aiBtn" onclick="location.href='ai.html'">🤖 DaHelpeCenter</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 /* RESET SESSION ITINERARY */
@@ -138,7 +141,7 @@ function openPrompt(type){
     document.getElementById("peopleCard").innerText=`${peopleData.adults}ad ${peopleData.children.length}cd ${peopleData.infants}if`;
   }else if(type==="type"){
     val = prompt("Trip type (family/bachelor):",tripType);
-    tripType = val.toLowerCase() === "bachelor" ? "bachelor":"family";
+    tripType = val.toLowerCase() === "bachelor" ? "bach":"family";
     document.getElementById("typeCard").innerText=tripType;
   }else{
     val = prompt(`Enter ${type}:`, locationData[type]);
@@ -153,7 +156,10 @@ document.getElementById("countryCard").onclick=()=>openPrompt("country");
 document.getElementById("stateCard").onclick=()=>openPrompt("state");
 document.getElementById("cityCard").onclick=()=>openPrompt("city");
 
-/* GENERATE FINDER CODE */
+/* NORMALIZE STRINGS */
+function normalize(str){ return str.trim().toLowerCase().replace(/\s+/g,""); }
+
+/* GENERATE PEOPLE CODE */
 function generatePeopleCode(adults, childrenAges, infants){
   let code = `${adults}ad${childrenAges.length}cd`;
   if(childrenAges.length>0){
@@ -167,6 +173,7 @@ function generatePeopleCode(adults, childrenAges, infants){
   return code;
 }
 
+/* GENERATE FINDER CODE */
 function generateFinderCode(){
   const peopleCode = generatePeopleCode(peopleData.adults, peopleData.children, peopleData.infants);
   const typeCode = tripType==="bachelor"?"bach":"family";
@@ -175,52 +182,25 @@ function generateFinderCode(){
   return `${peopleCode}.${typeCode}.${city}.${country}`;
 }
 
-/* PLACES DATA (ALL ORIGINAL + NEW FIELDS) */
+/* DESTINATIONS */
 const places=[
-{
-  name:"Amboli Waterfall",
-  description:"Scenic monsoon waterfall in the Western Ghats.",
-  info:"3 km from Amboli village. Best June–October.",
-  link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra",
-  city:"amboli",
-  state:"maharashtra",
-  country:"india",
-  vibe:"family",
-  minPeople:2,
-  maxPeople:10
-},
-{
-  name:"Devkund Waterfall",
-  description:"Popular trekking waterfall destination.",
-  info:"5 km trek, rocky terrain.",
-  link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra",
-  city:"mumbai",
-  state:"maharashtra",
-  country:"india",
-  vibe:"bach",
-  minPeople:2,
-  maxPeople:6
-},
-{
-  name:"Pawna Dam",
-  description:"Reservoir near Lonavala.",
-  info:"Popular for camping.",
-  link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra",
-  city:"lonavala",
-  state:"maharashtra",
-  country:"india",
-  vibe:"family",
-  minPeople:2,
-  maxPeople:10
-}
+{ name:"Amboli Waterfall", description:"Scenic monsoon waterfall in the Western Ghats.", info:"3 km from Amboli village. Best June–October.", link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra", city:"amboli", state:"maharashtra", country:"india", vibe:["family"], minPeople:1, maxPeople:10 },
+{ name:"Devkund Waterfall", description:"Popular trekking waterfall destination.", info:"5 km trek, rocky terrain.", link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra", city:"devkund", state:"maharashtra", country:"india", vibe:["family","bach"], minPeople:1, maxPeople:6 },
+{ name:"Pawna Dam", description:"Reservoir near Lonavala.", info:"Popular for camping.", link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra", city:"lonavala", state:"maharashtra", country:"india", vibe:["family"], minPeople:1, maxPeople:10 }
 ];
 
-/* SMART MATCHING BASED ON FINDER CODE */
+/* MATCH PLACES */
 function matchPlaces(){
   const code = generateFinderCode();
-  const [peoplePart, type, city] = code.split(".");
-  const peopleMatch = parseInt(peoplePart.split("ad")[0]);
-  return places.filter(p=>p.city===city && ((type==="bach" && p.vibe==="bach") || (type==="family" && p.vibe==="family")) && peopleMatch>=p.minPeople && peopleMatch<=p.maxPeople);
+  const [peoplePart, type, cityCode, countryCode] = code.split(".");
+  const peopleCount = parseInt(peoplePart.split("ad")[0]);
+
+  return places.filter(p=>{
+    return normalize(p.city).includes(normalize(cityCode)) &&
+           normalize(p.country).includes(normalize(countryCode)) &&
+           p.vibe.includes(type) &&
+           peopleCount>=p.minPeople && peopleCount<=p.maxPeople;
+  });
 }
 
 /* RENDER LIST */
@@ -269,8 +249,33 @@ function showDetails(p){
   },150);
 }
 
-renderList();
+/* DOWNLOAD PDF */
+function downloadPDF(){
+  const itin = JSON.parse(sessionStorage.getItem("itinerary"))||[];
+  if(itin.length===0){alert("No destinations to export."); return;}
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setDrawColor(0,0,255);
+  doc.rect(5,5,200,287); // border
+  doc.setFontSize(16);
+  doc.text("Official Travel Itinerary", 105, 15, {align:"center"});
+  doc.setFontSize(12);
+  let y=25;
+  itin.forEach((p,i)=>{
+    doc.text(`Day ${i+1}: ${p.name}`,10,y);
+    y+=7;
+    doc.text(p.description,10,y);
+    y+=7;
+    doc.text(`Info: ${p.itineraryInfo}`,10,y);
+    y+=7;
+    doc.text(p.map,10,y);
+    y+=12;
+    if(y>270){doc.addPage(); y=20;}
+  });
+  doc.save("Itinerary.pdf");
+}
 
+renderList();
 </script>
 </body>
 </html>
