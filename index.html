@@ -7,209 +7,270 @@
 
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
-body{
-  margin:0;
-  background:linear-gradient(135deg,#05001a,#12003d);
-  color:#fff
-}
+body{margin:0;background:#0a0a2a;color:#fff}
 
 .warning{
   background:#c80000;color:#fff;text-align:center;
-  padding:10px;font-weight:bold
+  padding:10px;font-weight:bold;animation:pulse 2s infinite
 }
+@keyframes pulse{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
 
-header{text-align:center;padding:20px}
-header h1{
-  color:#00f0ff;
-  text-shadow:0 0 12px #5a2cff;
-  font-size:2.6rem
-}
+header{text-align:center;padding:25px}
+header h1{color:#8c2cff;font-size:2.8rem}
 
-#stats{text-align:center;font-weight:bold;margin-bottom:10px}
+#stats{text-align:center;font-weight:bold;margin-bottom:10px;color:#0ff}
 
-/* 🔷 TOP BAR (MakeMyTrip style) */
-.top-bar{
-  max-width:1200px;
-  margin:20px auto;
-  padding:15px;
-  background:#0b0033;
-  border-radius:16px;
-  display:flex;
-  gap:12px;
-  align-items:center;
-  box-shadow:0 0 25px #5a2cff
+.search-bar{
+  max-width:1200px;margin:auto;padding:0 20px 10px;
+  display:flex;gap:10px;flex-wrap:wrap;
 }
-.top-bar input,.top-bar select{
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#05001a;
-  color:#fff;
-  box-shadow:inset 0 0 8px #5a2cff;
+.search-bar .card{
+  background:#11114d;padding:14px 20px;border-radius:12px;
+  cursor:pointer;flex:1 1 150px;text-align:center;
+  transition:.25s;
 }
-.top-bar button{
-  padding:12px 18px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(135deg,#5a2cff,#8000ff);
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer;
-  box-shadow:0 0 15px #5a2cff
-}
+.search-bar .card.active{background:#5a2cff;color:#fff;font-weight:bold}
+.search-bar input{flex:1 1 150px;padding:12px;border-radius:10px;border:1px solid #555;background:#11114d;color:#fff;}
 
-/* LAYOUT */
 .layout{
-  max-width:1200px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-  padding:20px
+  max-width:1200px;margin:auto;
+  display:grid;grid-template-columns:320px 1fr;
+  gap:20px;padding:20px
 }
 
-.panel{
-  background:#0b0033;
-  border-radius:16px;
-  box-shadow:0 0 20px #5a2cff;
-  padding:20px
+.list,.details{
+  background:#1a1a3d;border-radius:16px;
+  box-shadow:0 0 20px rgba(90,44,255,.5)
 }
 
-.place-card{
-  padding:14px;
-  border-radius:12px;
-  background:#12003d;
-  margin-bottom:12px;
-  cursor:pointer;
-  transition:.25s
+.item{
+  padding:16px;border-bottom:1px solid #222;
+  cursor:pointer;transition:.25s
 }
-.place-card:hover{background:#1c0066}
+.item:hover{background:#5a2cff;color:#fff}
+.item.active{background:#5a2cff;color:#fff;font-weight:bold}
 
-.preview{
-  min-height:220px;
-  border:2px dashed #5a2cff;
-  border-radius:12px;
-  padding:20px;
-  opacity:0;
-  transform:translateY(10px);
-  transition:.4s
+.details{
+  padding:24px;min-height:220px;
+  opacity:0;transform:translateY(10px);
+  transition:.35s ease
 }
-.preview.show{opacity:1;transform:translateY(0)}
+.details.show{opacity:1;transform:translateY(0)}
 
-.close{
-  position:absolute;
-  right:14px;
-  top:10px;
-  cursor:pointer
-}
-
-button.add{
-  margin-top:10px;
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#5a2cff;
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer
+.details h2{color:#8c2cff}
+.details button{
+  margin-top:15px;padding:12px 18px;
+  border:none;border-radius:12px;
+  background:#5a2cff;color:#fff;
+  font-weight:bold;cursor:pointer
 }
 
 #aiBtn{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:linear-gradient(135deg,#5a2cff,#00f0ff);
-  padding:14px 18px;
-  border-radius:30px;
-  cursor:pointer;
-  font-weight:bold;
-  box-shadow:0 0 25px #5a2cff
+  position:fixed;bottom:20px;right:20px;
+  background:linear-gradient(135deg,#5a2cff,#00b7ff);
+  color:#fff;padding:14px 18px;border-radius:30px;
+  font-weight:bold;cursor:pointer;
+  box-shadow:0 0 20px #5a2cff
 }
 
 @media(max-width:900px){
   .layout{grid-template-columns:1fr}
-  .top-bar{flex-wrap:wrap}
+  .search-bar{flex-direction:column}
 }
+.typing {border-right: .1em solid #fff;white-space:pre-wrap;}
 </style>
 </head>
 
 <body>
 
-<div class="warning">⚠️ UNDER DEVELOPMENT ⚠️</div>
+<div class="warning">⚠️ UNDER TESTING & DEVELOPMENT ⚠️</div>
 
 <header><h1>PlanDaVoyage</h1></header>
-<div id="stats"></div>
+<div id="stats">⭐ Points: 0</div>
 
-<!-- 🔷 TOP BAR -->
-<div class="top-bar">
-  <input type="number" id="people" min="1" value="1" placeholder="People">
-  <input id="country" placeholder="Country">
-  <input id="state" placeholder="State">
-  <input id="city" placeholder="City">
-  <select id="type">
-    <option>Family</option>
-    <option>Bachelor</option>
-  </select>
-  <button>Search</button>
+<div class="search-bar">
+  <div class="card" id="peopleCard">People</div>
+  <div class="card" id="typeCard">Trip Type</div>
+  <div class="card" id="countryCard">Country</div>
+  <div class="card" id="stateCard">State</div>
+  <div class="card" id="cityCard">City</div>
 </div>
 
-<!-- MAIN -->
 <div class="layout">
-  <div class="panel" id="list"></div>
-  <div class="panel">
-    <div id="details" class="preview">Select a destination</div>
+  <div class="list" id="list"></div>
+  <div class="details" id="details">
+    <p>Select a place to view details.</p>
   </div>
 </div>
 
 <div id="aiBtn" onclick="location.href='ai.html'">🤖 DaHelpeCenter</div>
 
 <script>
+/* RESET SESSION ITINERARY */
 sessionStorage.removeItem("itinerary");
 
-let user=JSON.parse(localStorage.getItem("pdv_user"))||{points:0};
-user.points+=5;
+/* POINTS */
+let user = JSON.parse(localStorage.getItem("pdv_user")) || {points:0};
+user.points += 5;
 localStorage.setItem("pdv_user",JSON.stringify(user));
-stats.innerText=`⭐ Points: ${user.points}`;
+document.getElementById("stats").innerText = `⭐ Points: ${user.points}`;
 
+/* INPUT STORAGE */
+let peopleData = {adults:2, children:[], infants:0};
+let tripType = "family";
+let locationData = {country:"india", state:"maharashtra", city:"mumbai"};
+
+/* CARD CLICK LOGIC */
+function openPrompt(type){
+  let val;
+  if(type==="people"){
+    val = prompt("Enter number of adults:", peopleData.adults);
+    peopleData.adults = parseInt(val)||2;
+    val = prompt("Enter number of children:", peopleData.children.length);
+    let n = parseInt(val)||0;
+    peopleData.children = [];
+    for(let i=0;i<n;i++){
+      let age = prompt(`Enter age of child ${i+1}:`,10);
+      peopleData.children.push(parseInt(age)||10);
+    }
+    val = prompt("Enter number of infants:", peopleData.infants);
+    peopleData.infants = parseInt(val)||0;
+    document.getElementById("peopleCard").innerText=`${peopleData.adults}ad ${peopleData.children.length}cd ${peopleData.infants}if`;
+  }else if(type==="type"){
+    val = prompt("Trip type (family/bachelor):",tripType);
+    tripType = val.toLowerCase() === "bachelor" ? "bachelor":"family";
+    document.getElementById("typeCard").innerText=tripType;
+  }else{
+    val = prompt(`Enter ${type}:`, locationData[type]);
+    locationData[type] = val.toLowerCase();
+    document.getElementById(type+"Card").innerText=val;
+  }
+}
+
+document.getElementById("peopleCard").onclick=()=>openPrompt("people");
+document.getElementById("typeCard").onclick=()=>openPrompt("type");
+document.getElementById("countryCard").onclick=()=>openPrompt("country");
+document.getElementById("stateCard").onclick=()=>openPrompt("state");
+document.getElementById("cityCard").onclick=()=>openPrompt("city");
+
+/* GENERATE FINDER CODE */
+function generatePeopleCode(adults, childrenAges, infants){
+  let code = `${adults}ad${childrenAges.length}cd`;
+  if(childrenAges.length>0){
+    code+="acdb-";
+    childrenAges.forEach((age,i)=>{
+      let letter=String.fromCharCode(97+i);
+      code+=`cd${letter}${age}`;
+    });
+  }
+  if(infants>0) code+=`if${infants}`;
+  return code;
+}
+
+function generateFinderCode(){
+  const peopleCode = generatePeopleCode(peopleData.adults, peopleData.children, peopleData.infants);
+  const typeCode = tripType==="bachelor"?"bach":"family";
+  const city = locationData.city;
+  const country = locationData.country.slice(0,3);
+  return `${peopleCode}.${typeCode}.${city}.${country}`;
+}
+
+/* PLACES DATA (ALL ORIGINAL + NEW FIELDS) */
 const places=[
- {name:"Amboli Waterfall",description:"Scenic monsoon waterfall.",info:"Best June–Oct",link:"https://maps.google.com"},
- {name:"Devkund Waterfall",description:"Popular trek waterfall.",info:"5 km trek",link:"https://maps.google.com"},
- {name:"Pawna Dam",description:"Camping destination.",info:"Near Lonavala",link:"https://maps.google.com"}
+{
+  name:"Amboli Waterfall",
+  description:"Scenic monsoon waterfall in the Western Ghats.",
+  info:"3 km from Amboli village. Best June–October.",
+  link:"https://www.google.com/maps/search/?api=1&query=Amboli+Waterfall+Maharashtra",
+  city:"amboli",
+  state:"maharashtra",
+  country:"india",
+  vibe:"family",
+  minPeople:2,
+  maxPeople:10
+},
+{
+  name:"Devkund Waterfall",
+  description:"Popular trekking waterfall destination.",
+  info:"5 km trek, rocky terrain.",
+  link:"https://www.google.com/maps/search/?api=1&query=Devkund+Waterfall+Maharashtra",
+  city:"mumbai",
+  state:"maharashtra",
+  country:"india",
+  vibe:"bach",
+  minPeople:2,
+  maxPeople:6
+},
+{
+  name:"Pawna Dam",
+  description:"Reservoir near Lonavala.",
+  info:"Popular for camping.",
+  link:"https://www.google.com/maps/search/?api=1&query=Pawna+Dam+Maharashtra",
+  city:"lonavala",
+  state:"maharashtra",
+  country:"india",
+  vibe:"family",
+  minPeople:2,
+  maxPeople:10
+}
 ];
 
-function addToItinerary(p){
- let i=JSON.parse(sessionStorage.getItem("itinerary"))||[];
- if(i.some(x=>x.name===p.name))return alert("Already added");
- i.push(p);
- sessionStorage.setItem("itinerary",JSON.stringify(i));
- user.points+=10;
- localStorage.setItem("pdv_user",JSON.stringify(user));
- stats.innerText=`⭐ Points: ${user.points}`;
+/* SMART MATCHING BASED ON FINDER CODE */
+function matchPlaces(){
+  const code = generateFinderCode();
+  const [peoplePart, type, city] = code.split(".");
+  const peopleMatch = parseInt(peoplePart.split("ad")[0]);
+  return places.filter(p=>p.city===city && ((type==="bach" && p.vibe==="bach") || (type==="family" && p.vibe==="family")) && peopleMatch>=p.minPeople && peopleMatch<=p.maxPeople);
 }
 
+/* RENDER LIST */
+const list=document.getElementById("list");
+const details=document.getElementById("details");
+
+function renderList(){
+  const matched = matchPlaces();
+  list.innerHTML="";
+  matched.forEach(p=>{
+    const item=document.createElement("div");
+    item.className="item";
+    item.textContent=p.name;
+    item.onclick=()=>showDetails(p);
+    list.appendChild(item);
+  });
+}
+
+/* TYPING ANIMATION */
+function typeText(container,text){
+  container.innerHTML="";
+  let i=0;
+  const interval = setInterval(()=>{
+    container.innerHTML=text.slice(0,i+1)+'<span class="typing"></span>';
+    i++;
+    if(i>=text.length) clearInterval(interval);
+  },25);
+}
+
+/* SHOW DETAILS */
 function showDetails(p){
- details.classList.remove("show");
- setTimeout(()=>{
-  details.innerHTML=`
-   <span class="close" onclick="details.innerHTML='Select a destination';details.classList.remove('show')">✕</span>
-   <h2>${p.name}</h2>
-   <p>${p.description}</p>
-   <p><b>Info:</b> ${p.info}</p>
-   <button class="add" onclick='addToItinerary(${JSON.stringify(p)})'>Add to Itinerary</button>
-  `;
-  details.classList.add("show");
- },150);
+  details.classList.remove("show");
+  setTimeout(()=>{
+    const html=`<h2>${p.name}</h2><p>${p.description}</p><p><b>Info:</b> ${p.info}</p><p><a href="${p.link}" target="_blank">View on Google Maps</a></p><button>Add to Itinerary</button>`;
+    typeText(details,html);
+    details.querySelector("button").onclick=()=>{
+      let itin=JSON.parse(sessionStorage.getItem("itinerary"))||[];
+      if(itin.some(i=>i.name===p.name)){alert("Already added.");return;}
+      itin.push({name:p.name,description:p.description,itineraryInfo:p.info,map:p.link});
+      sessionStorage.setItem("itinerary",JSON.stringify(itin));
+      user.points+=10;
+      localStorage.setItem("pdv_user",JSON.stringify(user));
+      document.getElementById("stats").innerText=`⭐ Points: ${user.points}`;
+    };
+    details.classList.add("show");
+  },150);
 }
 
-list.innerHTML="";
-places.forEach(p=>{
- let d=document.createElement("div");
- d.className="place-card";
- d.innerHTML=`<b>${p.name}</b><br>${p.description}`;
- d.onclick=()=>showDetails(p);
- list.appendChild(d);
-});
-</script>
+renderList();
 
+</script>
 </body>
 </html>
